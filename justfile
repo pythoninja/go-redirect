@@ -6,3 +6,6 @@ switch branch:
 
 master-pull:
     git switch master && git pull
+
+branch-push:
+    git push --set-upstream origin HEAD
