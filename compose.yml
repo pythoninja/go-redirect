@@ -1,0 +1,35 @@
+#file: noinspection SpellCheckingInspection
+services:
+  db:
+    image: postgres:16-alpine@sha256:951bfda460300925caa3949eaa092ba022e9aec191bbea9056a39e2382260b27
+    restart: on-failure
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: redirect
+    volumes:
+      - redirectdata:/var/lib/postgresql/data
+    networks:
+      redirect:
+        ipv4_address: 172.40.0.10
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      interval: 10s
+      timeout: 30s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+
+networks:
+  redirect:
+    name: redirect
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.40.0.0/16
+volumes:
+  redirectdata:
