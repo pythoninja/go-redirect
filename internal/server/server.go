@@ -1,6 +1,8 @@
 package server
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"github.com/pythoninja/go-redirect/internal/api"
 	"github.com/pythoninja/go-redirect/internal/config"
@@ -8,10 +10,12 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 )
 
-func Serve(app *config.Application, store *storage.Storage) {
+func Serve(app *config.Application, store *storage.Storage) error {
 	logHandler := slog.NewJSONHandler(os.Stdout, nil)
 	serverLogger := slog.NewLogLogger(logHandler, slog.LevelDebug)
 
@@ -24,11 +28,36 @@ func Serve(app *config.Application, store *storage.Storage) {
 		ErrorLog:     serverLogger,
 	}
 
+	shutdownError := make(chan error)
+
+	go func() {
+		slog.Info("starting background job to listen for signals")
+		quit := make(chan os.Signal, 1)
+
+		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+		s := <-quit
+		slog.Info("shutting down the server", slog.Any("signal", s.String()))
+
+		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+		defer cancel()
+
+		shutdownError <- srv.Shutdown(ctx)
+	}()
+
 	slog.Info("starting server", slog.Any("addr", srv.Addr))
 	slog.Info("database info", slog.Any("dsn", app.Config.Database.Dsn))
 
 	err := srv.ListenAndServe()
-	if err != nil {
-		slog.Error(err.Error())
+	if !errors.Is(err, http.ErrServerClosed) {
+		return err
 	}
+
+	err = <-shutdownError
+	if err != nil {
+		return err
+	}
+
+	slog.Info("server gracefully stopped")
+	return nil
 }
