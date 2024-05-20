@@ -51,5 +51,10 @@ func Run() {
 	app := config.InitConfiguration(&cfg)
 	store := storage.New(db)
 	config.InitLogger()
-	server.Serve(app, store)
+
+	err = server.Serve(app, store)
+	if err != nil {
+		slog.Error(err.Error())
+		os.Exit(1)
+	}
 }
