@@ -15,9 +15,9 @@ type handler struct {
 }
 
 var (
-	currentApiVersion = 1
-	basePath          = fmt.Sprintf("/v%d", currentApiVersion)
-	healthcheckRoute  = fmt.Sprintf("%s/healthcheck", basePath)
+	apiVersion       = 1
+	basePath         = fmt.Sprintf("/v%d", apiVersion)
+	healthcheckRoute = fmt.Sprintf("%s/healthcheck", basePath)
 	//listLinksRoute    = fmt.Sprintf("%s/links", basePath)
 	//linkInfoRoute     = fmt.Sprintf("%s/link/:id", basePath)
 	//linkRedirectRoute = fmt.Sprintf("%s/link/:id", basePath)

@@ -50,7 +50,7 @@ func Run() {
 
 	app := config.InitConfiguration(&cfg)
 	store := storage.New(db)
-	config.InitLogger()
+	config.InitLogger() // todo: move logger into own package
 
 	err = server.Serve(app, store)
 	if err != nil {

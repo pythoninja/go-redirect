@@ -2,16 +2,16 @@ package json
 
 import (
 	"encoding/json"
-	"errors"
+	"fmt"
 	"github.com/pythoninja/go-redirect/internal/server/response"
 	"log/slog"
 	"net/http"
 	"strings"
 )
 
-const contentTypeHeader = "application/json"
+var contentTypeHeader = "application/json"
 
-func OK(w http.ResponseWriter, r *http.Request, body any) {
+func Ok(w http.ResponseWriter, r *http.Request, body any) {
 	resp := response.New(w, r)
 	resp.WithStatus(http.StatusOK)
 	resp.WithBody(toJson(body))
@@ -22,21 +22,21 @@ func OK(w http.ResponseWriter, r *http.Request, body any) {
 func NotFound(w http.ResponseWriter, r *http.Request) {
 	logWarning(r, http.StatusNotFound)
 
-	err := errors.New("not found")
-	errorResponse(w, r, http.StatusNotFound, err)
+	message := "resource not found"
+	errorResponse(w, r, http.StatusNotFound, message)
 }
 
 func MethodNotAllowed(w http.ResponseWriter, r *http.Request) {
 	logWarning(r, http.StatusMethodNotAllowed)
 
-	err := errors.New("method not allowed")
-	errorResponse(w, r, http.StatusMethodNotAllowed, err)
+	message := fmt.Sprintf("method %s is not allowed for this resource", r.Method)
+	errorResponse(w, r, http.StatusMethodNotAllowed, message)
 }
 
-func errorResponse(w http.ResponseWriter, r *http.Request, status int, err error) {
+func errorResponse(w http.ResponseWriter, r *http.Request, status int, message any) {
 	resp := response.New(w, r)
 	resp.WithStatus(status)
-	resp.WithBody(toJsonError(err))
+	resp.WithBody(toJsonError(message))
 	resp.WithHeader("Content-Type", contentTypeHeader)
 	resp.Write()
 }
@@ -52,13 +52,12 @@ func toJson(body any) []byte {
 	return js
 }
 
-func toJsonError(err error) []byte {
-	type jsonWrapper struct {
-		Message string `json:"error"`
+func toJsonError(message any) []byte {
+	type wrapper struct {
+		Message any `json:"error"`
 	}
 
-	message := jsonWrapper{Message: err.Error()}
-	return toJson(message)
+	return toJson(wrapper{Message: message})
 }
 
 func logWarning(r *http.Request, status int) {

@@ -1,14 +1,16 @@
 package response
 
 import (
+	"fmt"
 	"net/http"
+	"reflect"
 )
 
 type Builder struct {
 	w          http.ResponseWriter
 	r          *http.Request
 	statusCode int
-	body       any
+	body       []byte
 	headers    http.Header
 }
 
@@ -31,27 +33,21 @@ func (b *Builder) WithHeader(key, value string) *Builder {
 	return b
 }
 
-func (b *Builder) WithBody(body any) *Builder {
+func (b *Builder) WithBody(body []byte) *Builder {
 	b.body = body
 	return b
 }
 
 func (b *Builder) Write() {
+	b.writeHeaders()
+
 	if b.body == nil {
-		b.writeHeaders()
 		return
 	}
 
-	b.writeHeaders()
+	fmt.Println("type in builder.Write(): ", reflect.TypeOf(b.body))
 
-	switch v := b.body.(type) {
-	case []byte:
-		b.w.Write(v)
-	case string:
-		b.w.Write([]byte(v))
-	case error:
-		b.w.Write([]byte(v.Error()))
-	}
+	b.w.Write(b.body)
 }
 
 func (b *Builder) writeHeaders() {
