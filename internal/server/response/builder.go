@@ -1,9 +1,7 @@
 package response
 
 import (
-	"fmt"
 	"net/http"
-	"reflect"
 )
 
 type Builder struct {
@@ -44,8 +42,6 @@ func (b *Builder) Write() {
 	if b.body == nil {
 		return
 	}
-
-	fmt.Println("type in builder.Write(): ", reflect.TypeOf(b.body))
 
 	b.w.Write(b.body)
 }

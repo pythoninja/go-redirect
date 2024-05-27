@@ -13,37 +13,47 @@ var contentTypeHeader = "application/json"
 
 type responseWrapper map[string]any
 
+// Ok handles generating a successful response for an HTTP request.
+// It marshals the given body to JSON format using the toJson function
+// and returns the result to the client with a 200 OK status code.
+// If there is an error during the marshaling process, it calls the ServerError function.
 func Ok(w http.ResponseWriter, r *http.Request, body any) {
+	bodyJson, err := toJson(body)
+	if err != nil {
+		ServerError(w, r, err)
+		return
+	}
+
 	resp := response.New(w, r)
 	resp.WithStatus(http.StatusOK)
-	resp.WithBody(toJson(body))
+	resp.WithBody(bodyJson)
 	resp.WithHeader("Content-Type", contentTypeHeader)
 	resp.Write()
 }
 
-func NotFound(w http.ResponseWriter, r *http.Request) {
-	logWarning(r, http.StatusNotFound)
-
-	message := "resource not found"
-	errorResponse(w, r, http.StatusNotFound, message)
-}
-
-func MethodNotAllowed(w http.ResponseWriter, r *http.Request) {
-	logWarning(r, http.StatusMethodNotAllowed)
-
-	message := fmt.Sprintf("method %s is not allowed for this resource", r.Method)
-	errorResponse(w, r, http.StatusMethodNotAllowed, message)
-}
-
+// errorResponse handles generating an error response for an HTTP request.
+// It creates a responseWrapper map with the "error" key set to the given message.
+// It then marshals the responseWrapper to JSON format using the toJson function
+// and returns the result to the client.
+// If there is an error during the marshaling process, it logs the error.
 func errorResponse(w http.ResponseWriter, r *http.Request, status int, message any) {
+	wrapper := responseWrapper{"error": message}
+	bodyJson, err := toJson(wrapper)
+	if err != nil {
+		slog.Error(err.Error())
+	}
+
 	resp := response.New(w, r)
 	resp.WithStatus(status)
-	resp.WithBody(toJsonError(message))
+	resp.WithBody(bodyJson)
 	resp.WithHeader("Content-Type", contentTypeHeader)
 	resp.Write()
 }
 
-func toJson(body any) []byte {
+// toJson marshals the given body to JSON format with indentation and returns it as a byte slice.
+// If the body is of type error, it wraps the error message in a responseWrapper map.
+// It returns an error if there was a problem marshaling the JSON data.
+func toJson(body any) ([]byte, error) {
 	var message any
 
 	switch m := body.(type) {
@@ -56,25 +66,9 @@ func toJson(body any) []byte {
 	js, err := json.MarshalIndent(message, "", strings.Repeat(" ", 2))
 	if err != nil {
 		slog.Error("Unable to marshal JSON data", slog.Any("error", err))
-		return []byte("") // todo: return error here, otherwise it will be replaced with ""
+		return nil, fmt.Errorf("unable to marshal json: %s", err)
 	}
 
 	js = append(js, '\n')
-	return js
-}
-
-func toJsonError(message any) []byte {
-	return toJson(responseWrapper{"error": message})
-}
-
-func logWarning(r *http.Request, status int) {
-	slog.Warn(http.StatusText(status),
-		slog.String("ip", r.RemoteAddr),
-		slog.Group("request",
-			slog.String("method", r.Method),
-			slog.String("uri", r.RequestURI),
-			slog.String("user_agent", r.UserAgent()),
-		),
-		slog.Group("response", slog.Int("http_code", status)),
-	)
+	return js, nil
 }
