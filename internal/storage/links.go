@@ -2,12 +2,14 @@ package storage
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"github.com/pythoninja/go-redirect/internal/model"
 	"time"
 )
 
 func (s Storage) GetAllLinks() ([]*model.Link, error) {
-	query := "select id, created_at, short_url, long_url, clicks from links"
+	query := `select id, created_at, short_url, long_url, clicks from links`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -42,4 +44,38 @@ func (s Storage) GetAllLinks() ([]*model.Link, error) {
 	}
 
 	return links, nil
+}
+
+func (s Storage) GetLinkById(id int64) (*model.Link, error) {
+	if id < 1 {
+		return nil, ErrRecordNotFound
+	}
+
+	query := `select id, created_at, short_url, long_url, clicks
+			from links
+			where id = $1`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var link model.Link
+
+	err := s.db.QueryRowContext(ctx, query, id).Scan(
+		&link.Id,
+		&link.CreatedAt,
+		&link.ShortLink,
+		&link.LongLink,
+		&link.Clicks,
+	)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	return &link, nil
+
 }

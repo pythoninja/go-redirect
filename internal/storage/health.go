@@ -6,7 +6,7 @@ import (
 )
 
 func (s Storage) GetDatabaseStatus() (int, error) {
-	query := "select 1"
+	query := `select 1`
 	var result int
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
