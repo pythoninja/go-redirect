@@ -8,13 +8,17 @@ import (
 	"time"
 )
 
+type linksStorage struct {
+	db *sql.DB
+}
+
 func (s Storage) GetAllLinks() ([]*model.Link, error) {
 	query := `select id, created_at, short_url, long_url, clicks from links`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	rows, err := s.db.QueryContext(ctx, query)
+	rows, err := s.Links.db.QueryContext(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +64,7 @@ func (s Storage) GetLinkById(id int64) (*model.Link, error) {
 
 	var link model.Link
 
-	err := s.db.QueryRowContext(ctx, query, id).Scan(
+	err := s.Links.db.QueryRowContext(ctx, query, id).Scan(
 		&link.Id,
 		&link.CreatedAt,
 		&link.ShortLink,

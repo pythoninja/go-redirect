@@ -8,11 +8,13 @@ import (
 var ErrRecordNotFound = errors.New("record not found")
 
 type Storage struct {
-	db *sql.DB
+	Links  linksStorage
+	Health healthStorage
 }
 
 func New(db *sql.DB) *Storage {
 	return &Storage{
-		db: db,
+		Links:  linksStorage{db: db},
+		Health: healthStorage{db: db},
 	}
 }

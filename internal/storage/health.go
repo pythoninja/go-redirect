@@ -2,8 +2,13 @@ package storage
 
 import (
 	"context"
+	"database/sql"
 	"time"
 )
+
+type healthStorage struct {
+	db *sql.DB
+}
 
 func (s Storage) GetDatabaseStatus() (int, error) {
 	query := `select 1`
@@ -12,7 +17,7 @@ func (s Storage) GetDatabaseStatus() (int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := s.db.QueryRowContext(ctx, query).Scan(&result)
+	err := s.Health.db.QueryRowContext(ctx, query).Scan(&result)
 	if err != nil {
 		return 0, err
 	}
