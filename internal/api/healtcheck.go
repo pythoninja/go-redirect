@@ -14,7 +14,7 @@ func (h *handler) healthcheckHandler(w http.ResponseWriter, r *http.Request) {
 		Environment: vars.Environment,
 	}
 
-	res, err := h.store.GetDatabaseStatus()
+	res, err := h.store.Health.GetDatabaseStatus()
 	if err != nil {
 		slog.Error(err.Error())
 	} else {

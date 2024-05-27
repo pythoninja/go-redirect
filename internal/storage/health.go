@@ -6,18 +6,18 @@ import (
 	"time"
 )
 
-type healthStorage struct {
+type HealthStorage struct {
 	db *sql.DB
 }
 
-func (s Storage) GetDatabaseStatus() (int, error) {
+func (s HealthStorage) GetDatabaseStatus() (int, error) {
 	query := `select 1`
 	var result int
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := s.Health.db.QueryRowContext(ctx, query).Scan(&result)
+	err := s.db.QueryRowContext(ctx, query).Scan(&result)
 	if err != nil {
 		return 0, err
 	}

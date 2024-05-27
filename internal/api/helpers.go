@@ -20,3 +20,8 @@ func readIdParam(r *http.Request) (int64, error) {
 
 	return id, nil
 }
+
+// readAliasParam extracts and returns the value of the "alias" parameter from the request URL.
+func readAliasParam(r *http.Request) string {
+	return httprouter.ParamsFromContext(r.Context()).ByName("alias")
+}

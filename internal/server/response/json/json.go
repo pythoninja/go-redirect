@@ -11,7 +11,7 @@ import (
 
 var contentTypeHeader = "application/json"
 
-type responseWrapper map[string]any
+type ResponseWrapper map[string]any
 
 // Ok handles generating a successful response for an HTTP request.
 // It marshals the given body to JSON format using the toJson function
@@ -37,7 +37,7 @@ func Ok(w http.ResponseWriter, r *http.Request, body any) {
 // and returns the result to the client.
 // If there is an error during the marshaling process, it logs the error.
 func errorResponse(w http.ResponseWriter, r *http.Request, status int, message any) {
-	wrapper := responseWrapper{"error": message}
+	wrapper := ResponseWrapper{"error": message}
 	bodyJson, err := toJson(wrapper)
 	if err != nil {
 		slog.Error(err.Error())
@@ -58,7 +58,7 @@ func toJson(body any) ([]byte, error) {
 
 	switch m := body.(type) {
 	case error:
-		message = responseWrapper{"error": m.Error()}
+		message = ResponseWrapper{"error": m.Error()}
 	default:
 		message = m
 	}
