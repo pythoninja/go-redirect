@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/julienschmidt/httprouter"
 	"github.com/pythoninja/go-redirect/internal/config"
+	"github.com/pythoninja/go-redirect/internal/server/middleware"
 	"github.com/pythoninja/go-redirect/internal/storage"
 	"log/slog"
 	"net/http"
@@ -40,5 +41,5 @@ func Routes(cfg *config.Application, store *storage.Storage) http.Handler {
 	//router.HandlerFunc(http.MethodGet, linkInfoRoute, linkInfoHandler)
 	//router.HandlerFunc(http.MethodGet, linkRedirectRoute, linkRedirectHandler)
 
-	return handler.logRequests(router)
+	return middleware.LogRequests(router)
 }

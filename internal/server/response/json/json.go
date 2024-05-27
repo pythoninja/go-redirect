@@ -11,6 +11,8 @@ import (
 
 var contentTypeHeader = "application/json"
 
+type responseWrapper map[string]any
+
 func Ok(w http.ResponseWriter, r *http.Request, body any) {
 	resp := response.New(w, r)
 	resp.WithStatus(http.StatusOK)
@@ -42,10 +44,19 @@ func errorResponse(w http.ResponseWriter, r *http.Request, status int, message a
 }
 
 func toJson(body any) []byte {
-	js, err := json.MarshalIndent(body, "", strings.Repeat(" ", 2))
+	var message any
+
+	switch m := body.(type) {
+	case error:
+		message = responseWrapper{"error": m.Error()}
+	default:
+		message = m
+	}
+
+	js, err := json.MarshalIndent(message, "", strings.Repeat(" ", 2))
 	if err != nil {
 		slog.Error("Unable to marshal JSON data", slog.Any("error", err))
-		return []byte("")
+		return []byte("") // todo: return error here, otherwise it will be replaced with ""
 	}
 
 	js = append(js, '\n')
@@ -53,11 +64,7 @@ func toJson(body any) []byte {
 }
 
 func toJsonError(message any) []byte {
-	type wrapper struct {
-		Message any `json:"error"`
-	}
-
-	return toJson(wrapper{Message: message})
+	return toJson(responseWrapper{"error": message})
 }
 
 func logWarning(r *http.Request, status int) {

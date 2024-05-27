@@ -1,11 +1,11 @@
-package api
+package middleware
 
 import (
 	"log/slog"
 	"net/http"
 )
 
-func (h *handler) logRequests(next http.Handler) http.Handler {
+func LogRequests(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var (
 			ip        = r.RemoteAddr
