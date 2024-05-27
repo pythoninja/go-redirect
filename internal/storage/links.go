@@ -81,5 +81,4 @@ func (s Storage) GetLinkById(id int64) (*model.Link, error) {
 	}
 
 	return &link, nil
-
 }

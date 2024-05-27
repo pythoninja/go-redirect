@@ -41,12 +41,12 @@ func Run() {
 	}
 
 	db, err := database.NewConnectionPool(&cfg)
-	defer db.Close()
-
 	if err != nil {
 		slog.Error(err.Error())
 		os.Exit(1)
 	}
+
+	defer db.Close()
 
 	app := config.InitConfiguration(&cfg)
 	store := storage.New(db)
