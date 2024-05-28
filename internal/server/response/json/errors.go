@@ -1,9 +1,11 @@
 package json
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 )
 
 func NotFound(w http.ResponseWriter, r *http.Request) {
@@ -24,6 +26,16 @@ func ServerError(w http.ResponseWriter, r *http.Request, err error) {
 	logMessage(r, http.StatusInternalServerError, err)
 
 	message := "the server encountered a problem and could not process your request"
+	errorResponse(w, r, http.StatusInternalServerError, message)
+}
+
+func ServerErrorWithDetails(w http.ResponseWriter, r *http.Request, message map[string]string) {
+	var validationErrors string
+	for key, value := range message {
+		validationErrors += fmt.Sprintf("%s: %s; ", key, value)
+	}
+
+	logMessage(r, http.StatusInternalServerError, errors.New(strings.TrimSuffix(validationErrors, "; ")))
 	errorResponse(w, r, http.StatusInternalServerError, message)
 }
 

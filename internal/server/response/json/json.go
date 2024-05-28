@@ -37,7 +37,7 @@ func Ok(w http.ResponseWriter, r *http.Request, body any) {
 // and returns the result to the client.
 // If there is an error during the marshaling process, it logs the error.
 func errorResponse(w http.ResponseWriter, r *http.Request, status int, message any) {
-	wrapper := ResponseWrapper{"error": message}
+	wrapper := ResponseWrapper{"errors": message}
 	bodyJson, err := toJson(wrapper)
 	if err != nil {
 		slog.Error(err.Error())

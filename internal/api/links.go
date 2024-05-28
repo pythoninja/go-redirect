@@ -4,7 +4,9 @@ import (
 	"errors"
 	"github.com/pythoninja/go-redirect/internal/server/response/json"
 	"github.com/pythoninja/go-redirect/internal/storage"
+	"github.com/pythoninja/go-redirect/internal/validator"
 	"net/http"
+	"net/url"
 )
 
 func (h *handler) listLinksHandler(w http.ResponseWriter, r *http.Request) {
@@ -46,7 +48,7 @@ func (h *handler) linkRedirectHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := h.store.Links.GetUrlByAlias(alias)
+	rawURL, err := h.store.Links.GetUrlByAlias(alias)
 	if err != nil {
 		switch {
 		case errors.Is(err, storage.ErrRecordNotFound):
@@ -57,10 +59,24 @@ func (h *handler) linkRedirectHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	v := validator.New()
+	parsedURL, err := url.ParseRequestURI(rawURL)
+	if err != nil {
+		json.ServerError(w, r, err)
+		return
+	}
+
+	// This shouldn't ever happen, but we want to validate the URL before sending it to the client.
+	// And send an HTTP 500 error with details if returned URL is not valid.
+	if v.ValidateURL(parsedURL); !v.Valid() {
+		json.ServerErrorWithDetails(w, r, v.Errors)
+		return
+	}
+
 	err = h.store.Links.UpdateClicksByAlias(alias)
 	if err != nil {
 		json.ServerError(w, r, err)
 	}
 
-	http.Redirect(w, r, res, http.StatusFound)
+	http.Redirect(w, r, rawURL, http.StatusFound)
 }
