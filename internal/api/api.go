@@ -2,14 +2,12 @@ package api
 
 import (
 	"github.com/go-chi/chi/v5"
-	chiMW "github.com/go-chi/chi/v5/middleware"
-	"github.com/go-chi/httprate"
 	"github.com/pythoninja/go-redirect/internal/config"
-	mw "github.com/pythoninja/go-redirect/internal/server/middleware"
+	"github.com/pythoninja/go-redirect/internal/server/middleware"
 	"github.com/pythoninja/go-redirect/internal/server/route"
 	"github.com/pythoninja/go-redirect/internal/storage"
+	"log/slog"
 	"net/http"
-	"time"
 )
 
 type handler struct {
@@ -18,29 +16,37 @@ type handler struct {
 }
 
 func Router(cfg *config.Application, store *storage.Storage) http.Handler {
-	handler := &handler{config: cfg, store: store}
-	routes := route.New()
+	h := &handler{config: cfg, store: store}
+	r := route.Configure()
+	mw := middleware.Configure()
 
 	router := chi.NewRouter()
 	router.Use(mw.LogRequests)
-	router.Use(httprate.LimitByRealIP(100, 1*time.Minute))
-	router.Use(chiMW.RedirectSlashes)
+	router.Use(mw.GlobalRateLimiter)
+	router.Use(mw.RedirectSlashes)
 
-	router.NotFound(handler.notFoundHandler)
-	router.MethodNotAllowed(handler.methodNotAllowedHandler)
+	router.NotFound(h.notFoundHandler)
+	router.MethodNotAllowed(h.methodNotAllowedHandler)
 
 	// Main router for /
-	router.Get(routes.Redirect, handler.linkRedirectHandler)
-	//router.New("/panic", func(http.ResponseWriter, *http.Request) { panic("foo") })
+	router.Get(r.Redirect, h.linkRedirectHandler)
+	slog.Info("registered new route", slog.Any("path", r.Redirect), slog.Any("method", "GET"))
+
+	//router.Configure("/panic", func(http.ResponseWriter, *http.Request) { panic("foo") })
 
 	// API router for /v1
 	apiRouter := chi.NewRouter()
-	apiRouter.Get(routes.ApiHealtcheck, handler.healthcheckHandler)
-	apiRouter.Get(routes.ApiListLinks, handler.listLinksHandler)
-	apiRouter.Get(routes.ApiShowLink, handler.showLinkHandler)
+	apiRouter.Get(r.ApiHealtcheck, h.healthcheckHandler)
+	slog.Info("registered new route", slog.Any("path", r.ApiHealtcheck), slog.Any("method", "GET"))
+
+	apiRouter.Get(r.ApiListLinks, h.listLinksHandler)
+	slog.Info("registered new route", slog.Any("path", r.ApiListLinks), slog.Any("method", "GET"))
+
+	apiRouter.Get(r.ApiShowLink, h.showLinkHandler)
+	slog.Info("registered new route", slog.Any("path", r.ApiShowLink), slog.Any("method", "GET"))
 
 	// Mount API router to the main router
-	router.Mount(routes.ApiPath, apiRouter)
+	router.Mount(r.ApiPath, apiRouter)
 
 	return router
 }

@@ -8,7 +8,7 @@ type Routes struct {
 	Redirect      string
 }
 
-func New() Routes {
+func Configure() Routes {
 	return Routes{
 		// Root
 		Redirect: "/{alias}",
