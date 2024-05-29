@@ -21,7 +21,7 @@ func Serve(app *config.Application, store *storage.Storage) error {
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%d", app.Config.Port),
-		Handler:      api.Routes(app, store),
+		Handler:      api.Router(app, store),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 5 * time.Second,

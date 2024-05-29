@@ -1,12 +1,12 @@
 package api
 
 import (
-	"fmt"
 	"github.com/go-chi/chi/v5"
 	chiMW "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/httprate"
 	"github.com/pythoninja/go-redirect/internal/config"
 	mw "github.com/pythoninja/go-redirect/internal/server/middleware"
+	"github.com/pythoninja/go-redirect/internal/server/route"
 	"github.com/pythoninja/go-redirect/internal/storage"
 	"net/http"
 	"time"
@@ -17,17 +17,9 @@ type handler struct {
 	store  *storage.Storage
 }
 
-var (
-	apiVersion        = 1
-	basePath          = fmt.Sprintf("/v%d", apiVersion)
-	healthcheckRoute  = fmt.Sprintf("%s/healthcheck", basePath)
-	listLinksRoute    = fmt.Sprintf("%s/links", basePath)
-	showLinkRoute     = fmt.Sprintf("%s/link/{id}", basePath)
-	linkRedirectRoute = "/{alias}"
-)
-
-func Routes(cfg *config.Application, store *storage.Storage) http.Handler {
+func Router(cfg *config.Application, store *storage.Storage) http.Handler {
 	handler := &handler{config: cfg, store: store}
+	routes := route.New()
 
 	router := chi.NewRouter()
 	router.Use(mw.LogRequests)
@@ -37,11 +29,18 @@ func Routes(cfg *config.Application, store *storage.Storage) http.Handler {
 	router.NotFound(handler.notFoundHandler)
 	router.MethodNotAllowed(handler.methodNotAllowedHandler)
 
-	router.Get(healthcheckRoute, handler.healthcheckHandler)
-	router.Get(linkRedirectRoute, handler.linkRedirectHandler)
-	router.Get(listLinksRoute, handler.listLinksHandler)
-	router.Get(showLinkRoute, handler.showLinkHandler)
-	//router.Get("/panic", func(http.ResponseWriter, *http.Request) { panic("foo") })
+	// Main router for /
+	router.Get(routes.Redirect, handler.linkRedirectHandler)
+	//router.New("/panic", func(http.ResponseWriter, *http.Request) { panic("foo") })
+
+	// API router for /v1
+	apiRouter := chi.NewRouter()
+	apiRouter.Get(routes.ApiHealtcheck, handler.healthcheckHandler)
+	apiRouter.Get(routes.ApiListLinks, handler.listLinksHandler)
+	apiRouter.Get(routes.ApiShowLink, handler.showLinkHandler)
+
+	// Mount API router to the main router
+	router.Mount(routes.ApiPath, apiRouter)
 
 	return router
 }
