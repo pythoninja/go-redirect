@@ -13,7 +13,7 @@ type LinksStorage struct {
 }
 
 func (s LinksStorage) GetAllLinks() ([]*model.Link, error) {
-	query := `select id, alias, long_url, clicks, created_at from links`
+	query := `select id, alias, target_url, clicks, created_at from links`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -55,7 +55,7 @@ func (s LinksStorage) GetLinkById(id int64) (*model.Link, error) {
 		return nil, ErrRecordNotFound
 	}
 
-	query := `select id, alias, long_url, clicks, created_at from links where id = $1`
+	query := `select id, alias, target_url, clicks, created_at from links where id = $1`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -82,7 +82,7 @@ func (s LinksStorage) GetLinkById(id int64) (*model.Link, error) {
 }
 
 func (s LinksStorage) GetUrlByAlias(alias string) (string, error) {
-	query := `select long_url from links where alias = $1`
+	query := `select target_url from links where alias = $1`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
