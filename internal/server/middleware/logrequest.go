@@ -1,25 +1,31 @@
 package middleware
 
 import (
+	"github.com/go-chi/chi/v5/middleware"
 	"log/slog"
 	"net/http"
+	"time"
 )
 
 func LogRequests(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var (
-			ip        = r.RemoteAddr
-			method    = r.Method
-			userAgent = r.UserAgent()
-			uri       = r.URL.RequestURI()
+		ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
+
+		logEntry := slog.With(
+			slog.String("ip", r.RemoteAddr),
+			slog.String("method", r.Method),
+			slog.String("user-agent", r.UserAgent()),
+			slog.String("uri", r.URL.RequestURI()),
 		)
 
-		slog.Info("received request",
-			slog.String("ip", ip),
-			slog.String("method", method),
-			slog.String("user-agent", userAgent),
-			slog.String("uri", uri))
+		start := time.Now()
 
-		next.ServeHTTP(w, r)
+		next.ServeHTTP(ww, r)
+
+		logEntry.Info("request completed",
+			slog.Int("status", ww.Status()),
+			slog.Int("bytes", ww.BytesWritten()),
+			slog.String("duration", time.Since(start).String()),
+		)
 	})
 }

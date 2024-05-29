@@ -2,12 +2,14 @@ package api
 
 import (
 	"fmt"
-	"github.com/julienschmidt/httprouter"
+	"github.com/go-chi/chi/v5"
+	chiMW "github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/httprate"
 	"github.com/pythoninja/go-redirect/internal/config"
-	"github.com/pythoninja/go-redirect/internal/server/middleware"
+	mw "github.com/pythoninja/go-redirect/internal/server/middleware"
 	"github.com/pythoninja/go-redirect/internal/storage"
-	"log/slog"
 	"net/http"
+	"time"
 )
 
 type handler struct {
@@ -20,26 +22,26 @@ var (
 	basePath          = fmt.Sprintf("/v%d", apiVersion)
 	healthcheckRoute  = fmt.Sprintf("%s/healthcheck", basePath)
 	listLinksRoute    = fmt.Sprintf("%s/links", basePath)
-	showLinkRoute     = fmt.Sprintf("%s/link/:id", basePath)
-	linkRedirectRoute = "/r/:alias"
+	showLinkRoute     = fmt.Sprintf("%s/link/{id}", basePath)
+	linkRedirectRoute = "/{alias}"
 )
 
 func Routes(cfg *config.Application, store *storage.Storage) http.Handler {
 	handler := &handler{config: cfg, store: store}
 
-	router := httprouter.New()
-	router.NotFound = http.HandlerFunc(handler.notFoundHandler)
-	router.MethodNotAllowed = http.HandlerFunc(handler.methodNotAllowedHandler)
+	router := chi.NewRouter()
+	router.Use(mw.LogRequests)
+	router.Use(httprate.LimitByRealIP(100, 1*time.Minute))
+	router.Use(chiMW.RedirectSlashes)
 
-	slog.Debug("initialize route", "route", healthcheckRoute)
-	slog.Debug("initialize route", "route", listLinksRoute)
-	slog.Debug("initialize route", "route", showLinkRoute)
-	slog.Debug("initialize route", "route", linkRedirectRoute)
+	router.NotFound(handler.notFoundHandler)
+	router.MethodNotAllowed(handler.methodNotAllowedHandler)
 
-	router.HandlerFunc(http.MethodGet, healthcheckRoute, handler.healthcheckHandler)
-	router.HandlerFunc(http.MethodGet, listLinksRoute, handler.listLinksHandler)
-	router.HandlerFunc(http.MethodGet, showLinkRoute, handler.showLinkHandler)
-	router.HandlerFunc(http.MethodGet, linkRedirectRoute, handler.linkRedirectHandler)
+	router.Get(healthcheckRoute, handler.healthcheckHandler)
+	router.Get(linkRedirectRoute, handler.linkRedirectHandler)
+	router.Get(listLinksRoute, handler.listLinksHandler)
+	router.Get(showLinkRoute, handler.showLinkHandler)
+	//router.Get("/panic", func(http.ResponseWriter, *http.Request) { panic("foo") })
 
-	return middleware.LogRequests(router)
+	return router
 }
