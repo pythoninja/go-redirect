@@ -47,6 +47,7 @@ func Serve(app *config.Application, store *storage.Storage) error {
 
 	slog.Info("starting server", slog.Any("addr", srv.Addr))
 	slog.Info("database info", slog.Any("dsn", app.Config.Database.Dsn))
+	slog.Info("rate limiter status", slog.Any("enabled", app.Config.EnableRateLimiter))
 
 	err := srv.ListenAndServe()
 	if !errors.Is(err, http.ErrServerClosed) {

@@ -20,6 +20,7 @@ const (
 	flagDatabaseMaxOpenConnsHelp = "Postgres max open connections"
 	flagDatabaseMaxIdleConnsHelp = "Postgres max idle connections"
 	flagDatabaseMaxIdleTimeHelp  = "Postgres max time. Values example: 45s, 30m"
+	flagEnableRateLimiterHelp    = "Enable global rate limiter. Default: true"
 )
 
 //goland:noinspection GoUnhandledErrorResult
@@ -33,6 +34,7 @@ func Run() {
 	flag.IntVar(&cfg.Database.MaxOpenConns, "db-max-open-conns", 25, flagDatabaseMaxOpenConnsHelp)
 	flag.IntVar(&cfg.Database.MaxIdleConns, "db-max-idle-conns", 25, flagDatabaseMaxIdleConnsHelp)
 	flag.StringVar(&cfg.Database.MaxIdleTime, "db-max-idle-time", "15m", flagDatabaseMaxIdleTimeHelp)
+	flag.BoolVar(&cfg.EnableRateLimiter, "rate-limiter-enabled", true, flagEnableRateLimiterHelp)
 	flag.Parse()
 
 	if *flagVersion {

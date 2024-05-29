@@ -22,7 +22,11 @@ func Router(cfg *config.Application, store *storage.Storage) http.Handler {
 
 	router := chi.NewRouter()
 	router.Use(mw.LogRequests)
-	router.Use(mw.GlobalRateLimiter)
+
+	if cfg.Config.EnableRateLimiter {
+		router.Use(mw.GlobalRateLimiter)
+	}
+
 	router.Use(mw.RedirectSlashes)
 
 	router.NotFound(h.notFoundHandler)
