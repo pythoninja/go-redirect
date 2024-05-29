@@ -18,14 +18,16 @@ type Config struct {
 		MaxIdleConns int
 		MaxIdleTime  string
 	}
+	EnableRateLimiter bool
 }
 
 func InitConfiguration(cfg *Config) *Application {
 	return &Application{
 		Config: Config{
-			Env:      cfg.Env,
-			Port:     cfg.Port,
-			Database: cfg.Database,
+			Env:               cfg.Env,
+			Port:              cfg.Port,
+			Database:          cfg.Database,
+			EnableRateLimiter: cfg.EnableRateLimiter,
 		},
 	}
 }

@@ -1,9 +1,10 @@
 package api
 
 import (
-	"fmt"
-	"github.com/julienschmidt/httprouter"
+	"github.com/go-chi/chi/v5"
 	"github.com/pythoninja/go-redirect/internal/config"
+	"github.com/pythoninja/go-redirect/internal/server/middleware"
+	"github.com/pythoninja/go-redirect/internal/server/route"
 	"github.com/pythoninja/go-redirect/internal/storage"
 	"log/slog"
 	"net/http"
@@ -14,31 +15,42 @@ type handler struct {
 	store  *storage.Storage
 }
 
-var (
-	currentApiVersion = 1
-	basePath          = fmt.Sprintf("/v%d", currentApiVersion)
-	healthcheckRoute  = fmt.Sprintf("%s/healthcheck", basePath)
-	//listLinksRoute    = fmt.Sprintf("%s/links", basePath)
-	//linkInfoRoute     = fmt.Sprintf("%s/link/:id", basePath)
-	//linkRedirectRoute = fmt.Sprintf("%s/link/:id", basePath)
-)
+func Router(cfg *config.Application, store *storage.Storage) http.Handler {
+	h := &handler{config: cfg, store: store}
+	r := route.Configure()
+	mw := middleware.Configure()
 
-func Routes(cfg *config.Application, store *storage.Storage) http.Handler {
-	handler := &handler{config: cfg, store: store}
+	router := chi.NewRouter()
+	router.Use(mw.LogRequests)
 
-	router := httprouter.New()
-	router.NotFound = http.HandlerFunc(handler.notFoundHandler)
-	router.MethodNotAllowed = http.HandlerFunc(handler.methodNotAllowedHandler)
+	if cfg.Config.EnableRateLimiter {
+		router.Use(mw.GlobalRateLimiter)
+	}
 
-	slog.Debug("initialize route", "route", healthcheckRoute)
-	//slog.Debug("Initialize route", "route", listLinksRoute)
-	//slog.Debug("Initialize route", "route", linkInfoRoute)
-	//slog.Debug("Initialize route", "route", linkRedirectRoute)
+	router.Use(mw.RedirectSlashes)
 
-	router.HandlerFunc(http.MethodGet, healthcheckRoute, handler.healthcheckHandler)
-	//router.HandlerFunc(http.MethodGet, listLinksRoute, listLinksHandler)
-	//router.HandlerFunc(http.MethodGet, linkInfoRoute, linkInfoHandler)
-	//router.HandlerFunc(http.MethodGet, linkRedirectRoute, linkRedirectHandler)
+	router.NotFound(h.notFoundHandler)
+	router.MethodNotAllowed(h.methodNotAllowedHandler)
 
-	return handler.logRequests(router)
+	// Main router for /
+	router.Get(r.Redirect, h.linkRedirectHandler)
+	slog.Info("registered new route", slog.Any("path", r.Redirect), slog.Any("method", "GET"))
+
+	//router.Configure("/panic", func(http.ResponseWriter, *http.Request) { panic("foo") })
+
+	// API router for /v1
+	apiRouter := chi.NewRouter()
+	apiRouter.Get(r.ApiHealtcheck, h.healthcheckHandler)
+	slog.Info("registered new route", slog.Any("path", r.ApiHealtcheck), slog.Any("method", "GET"))
+
+	apiRouter.Get(r.ApiListLinks, h.listLinksHandler)
+	slog.Info("registered new route", slog.Any("path", r.ApiListLinks), slog.Any("method", "GET"))
+
+	apiRouter.Get(r.ApiShowLink, h.showLinkHandler)
+	slog.Info("registered new route", slog.Any("path", r.ApiShowLink), slog.Any("method", "GET"))
+
+	// Mount API router to the main router
+	router.Mount(r.ApiPath, apiRouter)
+
+	return router
 }

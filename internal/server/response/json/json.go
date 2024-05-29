@@ -2,73 +2,73 @@ package json
 
 import (
 	"encoding/json"
-	"errors"
+	"fmt"
 	"github.com/pythoninja/go-redirect/internal/server/response"
 	"log/slog"
 	"net/http"
 	"strings"
 )
 
-const contentTypeHeader = "application/json"
+var contentTypeHeader = "application/json"
 
-func OK(w http.ResponseWriter, r *http.Request, body any) {
+type ResponseWrapper map[string]any
+
+// Ok handles generating a successful response for an HTTP request.
+// It marshals the given body to JSON format using the toJson function
+// and returns the result to the client with a 200 OK status code.
+// If there is an error during the marshaling process, it calls the ServerError function.
+func Ok(w http.ResponseWriter, r *http.Request, body any) {
+	bodyJson, err := toJson(body)
+	if err != nil {
+		ServerError(w, r, err)
+		return
+	}
+
 	resp := response.New(w, r)
 	resp.WithStatus(http.StatusOK)
-	resp.WithBody(toJson(body))
+	resp.WithBody(bodyJson)
 	resp.WithHeader("Content-Type", contentTypeHeader)
 	resp.Write()
 }
 
-func NotFound(w http.ResponseWriter, r *http.Request) {
-	logWarning(r, http.StatusNotFound)
+// errorResponse handles generating an error response for an HTTP request.
+// It creates a responseWrapper map with the "error" key set to the given message.
+// It then marshals the responseWrapper to JSON format using the toJson function
+// and returns the result to the client.
+// If there is an error during the marshaling process, it logs the error.
+func errorResponse(w http.ResponseWriter, r *http.Request, status int, message any) {
+	wrapper := ResponseWrapper{"errors": message}
+	bodyJson, err := toJson(wrapper)
+	if err != nil {
+		slog.Error(err.Error())
+	}
 
-	err := errors.New("not found")
-	errorResponse(w, r, http.StatusNotFound, err)
-}
-
-func MethodNotAllowed(w http.ResponseWriter, r *http.Request) {
-	logWarning(r, http.StatusMethodNotAllowed)
-
-	err := errors.New("method not allowed")
-	errorResponse(w, r, http.StatusMethodNotAllowed, err)
-}
-
-func errorResponse(w http.ResponseWriter, r *http.Request, status int, err error) {
 	resp := response.New(w, r)
 	resp.WithStatus(status)
-	resp.WithBody(toJsonError(err))
+	resp.WithBody(bodyJson)
 	resp.WithHeader("Content-Type", contentTypeHeader)
 	resp.Write()
 }
 
-func toJson(body any) []byte {
-	js, err := json.MarshalIndent(body, "", strings.Repeat(" ", 2))
+// toJson marshals the given body to JSON format with indentation and returns it as a byte slice.
+// If the body is of type error, it wraps the error message in a responseWrapper map.
+// It returns an error if there was a problem marshaling the JSON data.
+func toJson(body any) ([]byte, error) {
+	var message any
+
+	switch m := body.(type) {
+	case error:
+		message = ResponseWrapper{"error": m.Error()}
+	default:
+		message = m
+	}
+
+	js, err := json.MarshalIndent(message, "", strings.Repeat(" ", 2))
 	if err != nil {
 		slog.Error("Unable to marshal JSON data", slog.Any("error", err))
-		return []byte("")
+		return nil, fmt.Errorf("unable to marshal json: %s", err)
 	}
 
 	js = append(js, '\n')
-	return js
-}
-
-func toJsonError(err error) []byte {
-	type jsonWrapper struct {
-		Message string `json:"error"`
-	}
-
-	message := jsonWrapper{Message: err.Error()}
-	return toJson(message)
-}
-
-func logWarning(r *http.Request, status int) {
-	slog.Warn(http.StatusText(status),
-		slog.String("ip", r.RemoteAddr),
-		slog.Group("request",
-			slog.String("method", r.Method),
-			slog.String("uri", r.RequestURI),
-			slog.String("user_agent", r.UserAgent()),
-		),
-		slog.Group("response", slog.Int("http_code", status)),
-	)
+	return js, nil
 }

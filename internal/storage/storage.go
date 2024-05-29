@@ -1,13 +1,20 @@
 package storage
 
-import "database/sql"
+import (
+	"database/sql"
+	"errors"
+)
+
+var ErrRecordNotFound = errors.New("record not found")
 
 type Storage struct {
-	db *sql.DB
+	Links  LinksStorage
+	Health HealthStorage
 }
 
 func New(db *sql.DB) *Storage {
 	return &Storage{
-		db: db,
+		Links:  LinksStorage{db: db},
+		Health: HealthStorage{db: db},
 	}
 }

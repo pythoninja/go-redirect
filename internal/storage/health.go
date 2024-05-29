@@ -3,26 +3,24 @@ package storage
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"time"
 )
 
-func (s Storage) GetDatabaseStatus() (string, error) {
-	query := "select 'hello'"
-	var status string
+type HealthStorage struct {
+	db *sql.DB
+}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+func (s HealthStorage) GetDatabaseStatus() (int, error) {
+	query := `select 1`
+	var result int
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := s.db.QueryRowContext(ctx, query).Scan(&status)
+	err := s.db.QueryRowContext(ctx, query).Scan(&result)
 	if err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return "", errors.New("record not found")
-		default:
-			return "", err
-		}
+		return 0, err
 	}
 
-	return status, nil
+	return result, nil
 }

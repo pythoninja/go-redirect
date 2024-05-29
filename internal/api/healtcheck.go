@@ -8,27 +8,24 @@ import (
 	"net/http"
 )
 
-var helloResponse = "hello"
-
 func (h *handler) healthcheckHandler(w http.ResponseWriter, r *http.Request) {
-	res, err := h.store.GetDatabaseStatus()
+	health := model.Health{
+		Version:     vars.Version,
+		Environment: vars.Environment,
+	}
+
+	res, err := h.store.Health.GetDatabaseStatus()
 	if err != nil {
 		slog.Error(err.Error())
-	}
-
-	var health model.Health
-
-	if res == helloResponse {
-		health.DatabaseStatus = "connected"
-		health.Status = "ok"
 	} else {
-		slog.Error("database down")
-		health.DatabaseStatus = "down"
-		health.Status = "fail"
+		health.DatabaseStatus, health.Status = "connected", "ok"
 	}
 
-	health.Version = vars.Version
-	health.Environment = vars.Environment
+	// Check the result from 'select 1' query.
+	if res != 1 {
+		slog.Error("database down")
+		health.DatabaseStatus, health.Status = "down", "fail"
+	}
 
-	json.OK(w, r, health)
+	json.Ok(w, r, health)
 }

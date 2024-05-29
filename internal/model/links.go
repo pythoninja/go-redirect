@@ -1,8 +1,11 @@
 package model
 
-type Links struct {
-	Id           int    `json:"id"`
-	ShortLink    string `json:"short_link"`
-	LongLink     string `json:"long_link"`
-	ClickCounter int    `json:"clicks"`
+import "time"
+
+type Link struct {
+	Id        int       `json:"id"`
+	Alias     string    `json:"alias"`
+	Url       string    `json:"url"`
+	Clicks    int       `json:"clicks"`
+	CreatedAt time.Time `json:"created_at"`
 }
