@@ -23,6 +23,7 @@ func Router(cfg *config.Application, store *storage.Storage) http.Handler {
 
 	router := chi.NewRouter()
 	router.Use(mw.LogRequests)
+	router.Use(mw.RecoverPanic)
 
 	if cfg.Config.EnableRateLimiter {
 		router.Use(mw.GlobalRateLimiter)
