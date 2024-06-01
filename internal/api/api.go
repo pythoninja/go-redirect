@@ -4,6 +4,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/pythoninja/go-redirect/internal/config"
 	"github.com/pythoninja/go-redirect/internal/server/middleware"
+	"github.com/pythoninja/go-redirect/internal/server/response/json"
 	"github.com/pythoninja/go-redirect/internal/server/route"
 	"github.com/pythoninja/go-redirect/internal/storage"
 	"log/slog"
@@ -29,24 +30,22 @@ func Router(cfg *config.Application, store *storage.Storage) http.Handler {
 
 	router.Use(mw.RedirectSlashes)
 
-	router.NotFound(h.notFoundHandler)
-	router.MethodNotAllowed(h.methodNotAllowedHandler)
+	router.NotFound(json.NotFound)
+	router.MethodNotAllowed(json.MethodNotAllowed)
 
 	// Main router for /
 	router.Get(r.Redirect, h.linkRedirectHandler)
 	slog.Info("registered new route", slog.Any("path", r.Redirect), slog.Any("method", "GET"))
-
-	//router.Configure("/panic", func(http.ResponseWriter, *http.Request) { panic("foo") })
 
 	// API router for /v1
 	apiRouter := chi.NewRouter()
 	apiRouter.Get(r.ApiHealtcheck, h.healthcheckHandler)
 	slog.Info("registered new route", slog.Any("path", r.ApiHealtcheck), slog.Any("method", "GET"))
 
-	apiRouter.Get(r.ApiListLinks, h.listLinksHandler)
+	apiRouter.With(mw.Authorize(cfg.Config.APISecretKey)).Get(r.ApiListLinks, h.listLinksHandler)
 	slog.Info("registered new route", slog.Any("path", r.ApiListLinks), slog.Any("method", "GET"))
 
-	apiRouter.Get(r.ApiShowLink, h.showLinkHandler)
+	apiRouter.With(mw.Authorize(cfg.Config.APISecretKey)).Get(r.ApiShowLink, h.showLinkHandler)
 	slog.Info("registered new route", slog.Any("path", r.ApiShowLink), slog.Any("method", "GET"))
 
 	// Mount API router to the main router

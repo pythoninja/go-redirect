@@ -20,7 +20,7 @@ func Serve(app *config.Application, store *storage.Storage) error {
 	serverLogger := slog.NewLogLogger(logHandler, slog.LevelDebug)
 
 	srv := &http.Server{
-		Addr:         fmt.Sprintf(":%d", app.Config.Port),
+		Addr:         fmt.Sprintf("%s:%d", app.Config.Addr, app.Config.Port),
 		Handler:      api.Router(app, store),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  5 * time.Second,
@@ -46,8 +46,7 @@ func Serve(app *config.Application, store *storage.Storage) error {
 	}()
 
 	slog.Info("starting server", slog.Any("addr", srv.Addr))
-	slog.Info("database info", slog.Any("dsn", app.Config.Database.Dsn))
-	slog.Info("rate limiter status", slog.Any("enabled", app.Config.EnableRateLimiter))
+	slog.Info("api secret key", slog.Any("key", app.Config.APISecretKey))
 
 	err := srv.ListenAndServe()
 	if !errors.Is(err, http.ErrServerClosed) {

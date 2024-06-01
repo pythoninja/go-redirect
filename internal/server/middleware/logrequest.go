@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func LogRequests(next http.Handler) http.Handler {
+func logRequests(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
 

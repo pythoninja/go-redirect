@@ -9,15 +9,15 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func NewConnectionPool(cfg *config.Config) (*sql.DB, error) {
-	duration, err := time.ParseDuration(cfg.Database.MaxIdleTime)
+func NewConnectionPool(app *config.Application) (*sql.DB, error) {
+	duration, err := time.ParseDuration(app.Config.Database.MaxIdleTime)
 	if err != nil {
 		return nil, err
 	}
 
-	db, err := sql.Open("postgres", cfg.Database.Dsn)
-	db.SetMaxIdleConns(cfg.Database.MaxIdleConns)
-	db.SetMaxOpenConns(cfg.Database.MaxOpenConns)
+	db, err := sql.Open("postgres", app.Config.Database.Dsn)
+	db.SetMaxIdleConns(app.Config.Database.MaxIdleConns)
+	db.SetMaxOpenConns(app.Config.Database.MaxOpenConns)
 	db.SetConnMaxIdleTime(duration)
 
 	if err != nil {
