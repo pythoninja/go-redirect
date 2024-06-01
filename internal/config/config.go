@@ -1,8 +1,10 @@
 package config
 
 import (
+	"github.com/pythoninja/go-redirect/internal/tokens"
 	"log/slog"
 	"os"
+	"strings"
 )
 
 type Application struct {
@@ -10,6 +12,7 @@ type Application struct {
 }
 
 type Config struct {
+	Addr     string
 	Port     int
 	Env      string
 	Database struct {
@@ -19,16 +22,28 @@ type Config struct {
 		MaxIdleTime  string
 	}
 	EnableRateLimiter bool
+	APISecretKey      string
 }
 
 func InitConfiguration(cfg *Config) *Application {
+	if strings.TrimSpace(cfg.APISecretKey) == "" {
+		cfg.APISecretKey = tokens.NewAPIKey()
+	}
+
+	slog.Info("starting application",
+		slog.Group("settings",
+			slog.String("env", cfg.Env),
+			slog.String("addr", cfg.Addr),
+			slog.Int("port", cfg.Port),
+			slog.String("db-dsn", cfg.Database.Dsn),
+			slog.Int("db-max-open-conns", cfg.Database.MaxOpenConns),
+			slog.Int("db-max-idle-conns", cfg.Database.MaxIdleConns),
+			slog.String("db-max-idle-time", cfg.Database.MaxIdleTime),
+			slog.Bool("rate-limiter-enabled", cfg.EnableRateLimiter),
+		))
+
 	return &Application{
-		Config: Config{
-			Env:               cfg.Env,
-			Port:              cfg.Port,
-			Database:          cfg.Database,
-			EnableRateLimiter: cfg.EnableRateLimiter,
-		},
+		Config: *cfg,
 	}
 }
 

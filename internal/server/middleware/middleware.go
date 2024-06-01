@@ -11,12 +11,14 @@ type Middlewares struct {
 	LogRequests       func(next http.Handler) http.Handler
 	RedirectSlashes   func(next http.Handler) http.Handler
 	GlobalRateLimiter func(next http.Handler) http.Handler
+	Authorize         func(apiKey string) func(next http.Handler) http.Handler
 }
 
 func Configure() Middlewares {
 	return Middlewares{
-		LogRequests:       LogRequests,
+		LogRequests:       logRequests,
 		RedirectSlashes:   middleware.RedirectSlashes,
-		GlobalRateLimiter: httprate.LimitByRealIP(100, 1*time.Minute),
+		GlobalRateLimiter: httprate.LimitByRealIP(300, 1*time.Minute),
+		Authorize:         keyAuth,
 	}
 }

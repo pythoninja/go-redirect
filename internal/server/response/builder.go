@@ -1,6 +1,7 @@
 package response
 
 import (
+	"log/slog"
 	"net/http"
 )
 
@@ -27,7 +28,7 @@ func (b *Builder) WithStatus(statusCode int) *Builder {
 }
 
 func (b *Builder) WithHeader(key, value string) *Builder {
-	b.headers.Set(key, value)
+	b.headers.Add(key, value)
 	return b
 }
 
@@ -43,11 +44,12 @@ func (b *Builder) Write() {
 		return
 	}
 
-	b.w.Write(b.body)
+	if _, err := b.w.Write(b.body); err != nil {
+		slog.Error("error writing body", slog.Any("error", err))
+	}
 }
 
 func (b *Builder) writeHeaders() {
-	// Set additional headers if any
 	for key, value := range b.headers {
 		b.w.Header()[key] = value
 	}
