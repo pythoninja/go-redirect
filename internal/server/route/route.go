@@ -5,6 +5,7 @@ type Routes struct {
 	ApiHealtcheck string
 	ApiListLinks  string
 	ApiShowLink   string
+	ApiAddLink    string
 	Redirect      string
 }
 
@@ -18,5 +19,6 @@ func Configure() Routes {
 		ApiHealtcheck: "/health",
 		ApiListLinks:  "/links",
 		ApiShowLink:   "/link/{id}",
+		ApiAddLink:    "/link",
 	}
 }

@@ -8,11 +8,11 @@ import (
 	"time"
 )
 
-type LinksStorage struct {
+type linksStorage struct {
 	db *sql.DB
 }
 
-func (s LinksStorage) GetAllLinks() ([]*model.Link, error) {
+func (s linksStorage) GetAllLinks() ([]*model.Link, error) {
 	query := `select id, alias, target_url, clicks, created_at from links`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -50,7 +50,7 @@ func (s LinksStorage) GetAllLinks() ([]*model.Link, error) {
 	return links, nil
 }
 
-func (s LinksStorage) GetLinkById(id int64) (*model.Link, error) {
+func (s linksStorage) GetLinkById(id int64) (*model.Link, error) {
 	if id < 1 {
 		return nil, ErrRecordNotFound
 	}
@@ -81,7 +81,7 @@ func (s LinksStorage) GetLinkById(id int64) (*model.Link, error) {
 	return &link, nil
 }
 
-func (s LinksStorage) GetUrlByAlias(alias string) (string, error) {
+func (s linksStorage) GetUrlByAlias(alias string) (string, error) {
 	query := `select target_url from links where alias = $1`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -102,7 +102,7 @@ func (s LinksStorage) GetUrlByAlias(alias string) (string, error) {
 	return url, nil
 }
 
-func (s LinksStorage) UpdateClicksByAlias(alias string) error {
+func (s linksStorage) UpdateClicksByAlias(alias string) error {
 	query := `update links set clicks = clicks + 1 where alias = $1`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -111,4 +111,27 @@ func (s LinksStorage) UpdateClicksByAlias(alias string) error {
 	_, err := s.db.ExecContext(ctx, query, alias)
 
 	return err
+}
+
+func (s linksStorage) InsertLink(link *model.Link) error {
+	query := `insert into links (target_url, alias)
+		values ($1, $2)
+		returning id, created_at, clicks`
+
+	args := []any{link.Url, link.Alias}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := s.db.QueryRowContext(ctx, query, args...).Scan(&link.Id, &link.CreatedAt, &link.Clicks)
+	if err != nil {
+		switch {
+		case err.Error() == `pq: duplicate key value violates unique constraint "links_alias_key"`:
+			return ErrDuplicateAlias
+		default:
+			return err
+		}
+	}
+
+	return nil
 }

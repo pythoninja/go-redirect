@@ -49,6 +49,19 @@ func ServerErrorWithDetails(w http.ResponseWriter, r *http.Request, message map[
 	errorResponse(w, r, http.StatusInternalServerError, message, nil)
 }
 
+func BadRequestResponse(w http.ResponseWriter, r *http.Request, err error) {
+	logError(r, http.StatusBadRequest, err)
+	errorResponse(w, r, http.StatusBadRequest, err.Error(), nil)
+}
+
+func FailedValidationResponse(w http.ResponseWriter, r *http.Request, message map[string]string) {
+	errorResponse(w, r, http.StatusUnprocessableEntity, message, nil)
+}
+
+func LinkNotFoundResponse(w http.ResponseWriter, r *http.Request, message map[string]string) {
+	errorResponse(w, r, http.StatusNotFound, message, nil)
+}
+
 func logError(r *http.Request, status int, err error) {
 	logEntry := slog.With(
 		slog.String("ip", r.RemoteAddr),
