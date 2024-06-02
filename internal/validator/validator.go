@@ -49,11 +49,11 @@ func ValidateURL(v *Validator, u *url.URL) {
 	}
 
 	v.Check(u.Scheme == "http" || u.Scheme == "https", "protocol", "must be http or https")
-	v.Check(v.NotBlank(u.Host), "hostname", "must be not empty")
+	v.Check(v.NotBlank(u.Host), "hostname", "must not be empty")
 }
 
 func ValidateAlias(v *Validator, alias string) {
-	v.Check(v.NotBlank(alias), "alias", "must be not empty")
+	v.Check(v.NotBlank(alias), "alias", "must not be empty")
 	v.Check(v.MaxChars(alias, 15), "alias", "must be less then 16 symbols")
 	v.Check(v.MinChars(alias, 3), "alias", "must be more then 2 symbols")
 }

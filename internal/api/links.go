@@ -12,7 +12,7 @@ import (
 )
 
 func (h *handler) listLinksHandler(w http.ResponseWriter, r *http.Request) {
-	res, err := h.store.Links.GetAllLinks()
+	res, err := h.store.Links.GetAll()
 	if err != nil {
 		json.ServerError(w, r, err)
 		return
@@ -30,7 +30,7 @@ func (h *handler) showLinkHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get info about link from database
-	res, err := h.store.Links.GetLinkById(id)
+	res, err := h.store.Links.GetById(id)
 	if err != nil {
 		switch {
 		case errors.Is(err, storage.ErrRecordNotFound):
@@ -115,7 +115,7 @@ func (h *handler) linkAddHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.store.Links.InsertLink(&link)
+	err = h.store.Links.Insert(&link)
 	if err != nil {
 		switch {
 		case errors.Is(err, storage.ErrDuplicateAlias):
@@ -128,4 +128,75 @@ func (h *handler) linkAddHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.Created(w, r, link)
+}
+
+func (h *handler) linkUpdateHandler(w http.ResponseWriter, r *http.Request) {
+	// Read id
+	id, err := readIdParam(r)
+	if err != nil {
+		message := map[string]string{"link": fmt.Sprintf("must be a positive integer")}
+		json.LinkNotFoundResponse(w, r, message)
+		return
+	}
+
+	link, err := h.store.Links.GetById(id)
+	if err != nil {
+		switch {
+		case errors.Is(err, storage.ErrRecordNotFound):
+			message := map[string]string{"link": fmt.Sprintf("id '%d' not found", id)}
+			json.LinkNotFoundResponse(w, r, message)
+		default:
+			json.ServerError(w, r, err)
+		}
+		return
+	}
+
+	var input struct {
+		Url   *string `json:"url"`
+		Alias *string `json:"alias"`
+	}
+
+	err = json.ReadBody(w, r, &input)
+	if err != nil {
+		json.BadRequestResponse(w, r, err)
+		return
+	}
+
+	if input.Url != nil {
+		link.Url = *input.Url
+	}
+
+	if input.Alias != nil {
+		link.Alias = *input.Alias
+	}
+
+	v := validator.New()
+
+	parsedURL, err := url.ParseRequestURI(link.Url)
+	if err != nil {
+		json.BadRequestResponse(w, r, errors.New("missed url key or invalid URL provided"))
+		return
+	}
+
+	validator.ValidateURL(v, parsedURL)
+	validator.ValidateAlias(v, link.Alias)
+
+	if !v.Valid() {
+		json.FailedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	err = h.store.Links.Update(link)
+	if err != nil {
+		switch {
+		case errors.Is(err, storage.ErrDuplicateAlias):
+			v.AddError("alias", fmt.Sprintf("'%s' is already exists in database", link.Alias))
+			json.FailedValidationResponse(w, r, v.Errors)
+		default:
+			json.ServerError(w, r, err)
+		}
+		return
+	}
+
+	json.Ok(w, r, link)
 }

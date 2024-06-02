@@ -12,7 +12,7 @@ type linksStorage struct {
 	db *sql.DB
 }
 
-func (s linksStorage) GetAllLinks() ([]*model.Link, error) {
+func (s linksStorage) GetAll() ([]*model.Link, error) {
 	query := `select id, alias, target_url, clicks, created_at from links`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -50,7 +50,7 @@ func (s linksStorage) GetAllLinks() ([]*model.Link, error) {
 	return links, nil
 }
 
-func (s linksStorage) GetLinkById(id int64) (*model.Link, error) {
+func (s linksStorage) GetById(id int64) (*model.Link, error) {
 	if id < 1 {
 		return nil, ErrRecordNotFound
 	}
@@ -113,7 +113,7 @@ func (s linksStorage) UpdateClicksByAlias(alias string) error {
 	return err
 }
 
-func (s linksStorage) InsertLink(link *model.Link) error {
+func (s linksStorage) Insert(link *model.Link) error {
 	query := `insert into links (target_url, alias)
 		values ($1, $2)
 		returning id, created_at, clicks`
@@ -126,7 +126,34 @@ func (s linksStorage) InsertLink(link *model.Link) error {
 	err := s.db.QueryRowContext(ctx, query, args...).Scan(&link.Id, &link.CreatedAt, &link.Clicks)
 	if err != nil {
 		switch {
-		case err.Error() == `pq: duplicate key value violates unique constraint "links_alias_key"`:
+		case errors.As(err, &errUniqueConstraintViolationAlias):
+			return ErrDuplicateAlias
+		default:
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s linksStorage) Update(link *model.Link) error {
+	query := `update links
+		set target_url = $1, alias = $2
+		where id = $3`
+
+	args := []any{
+		link.Url,
+		link.Alias,
+		link.Id,
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	_, err := s.db.ExecContext(ctx, query, args...)
+	if err != nil {
+		switch {
+		case errors.As(err, &errUniqueConstraintViolationAlias):
 			return ErrDuplicateAlias
 		default:
 			return err

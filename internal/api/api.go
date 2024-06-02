@@ -52,6 +52,9 @@ func Router(cfg *config.Application, store *storage.Storage) http.Handler {
 	apiRouter.With(mw.Authorize(cfg.Config.APISecretKey)).Post(r.ApiAddLink, h.linkAddHandler)
 	slog.Info("registered new route", slog.Any("path", r.ApiAddLink), slog.Any("method", "POST"))
 
+	apiRouter.With(mw.Authorize(cfg.Config.APISecretKey)).Put(r.ApiUpdateLink, h.linkUpdateHandler)
+	slog.Info("registered new route", slog.Any("path", r.ApiUpdateLink), slog.Any("method", "PUT"))
+
 	// Mount API router to the main router
 	router.Mount(r.ApiPath, apiRouter)
 
