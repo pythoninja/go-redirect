@@ -2,6 +2,8 @@ package api
 
 import (
 	"errors"
+	"fmt"
+	"github.com/pythoninja/go-redirect/internal/model"
 	"github.com/pythoninja/go-redirect/internal/server/response/json"
 	"github.com/pythoninja/go-redirect/internal/storage"
 	"github.com/pythoninja/go-redirect/internal/validator"
@@ -22,7 +24,8 @@ func (h *handler) listLinksHandler(w http.ResponseWriter, r *http.Request) {
 func (h *handler) showLinkHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := readIdParam(r)
 	if err != nil {
-		json.NotFound(w, r)
+		message := map[string]string{"link": fmt.Sprintf("must be a positive integer")}
+		json.LinkNotFoundResponse(w, r, message)
 		return
 	}
 
@@ -31,7 +34,8 @@ func (h *handler) showLinkHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, storage.ErrRecordNotFound):
-			json.NotFound(w, r)
+			message := map[string]string{"link": fmt.Sprintf("id '%d' not found", id)}
+			json.LinkNotFoundResponse(w, r, message)
 		default:
 			json.ServerError(w, r, err)
 		}
@@ -43,16 +47,13 @@ func (h *handler) showLinkHandler(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) linkRedirectHandler(w http.ResponseWriter, r *http.Request) {
 	alias := readAliasParam(r)
-	if alias == "" {
-		json.NotFound(w, r)
-		return
-	}
 
 	rawURL, err := h.store.Links.GetUrlByAlias(alias)
 	if err != nil {
 		switch {
 		case errors.Is(err, storage.ErrRecordNotFound):
-			json.NotFound(w, r)
+			message := map[string]string{"alias": fmt.Sprintf("'%s' not found", alias)}
+			json.LinkNotFoundResponse(w, r, message)
 		default:
 			json.ServerError(w, r, err)
 		}
@@ -67,8 +68,8 @@ func (h *handler) linkRedirectHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// This shouldn't ever happen, but we want to validate the URL before sending it to the client.
-	// And send an HTTP 500 error with details if returned URL is not valid.
-	if v.ValidateURL(parsedURL); !v.Valid() {
+	// Send an HTTP 500 error and log the details if returned URL is not valid.
+	if validator.ValidateURL(v, parsedURL); !v.Valid() {
 		json.ServerErrorWithDetails(w, r, v.Errors)
 		return
 	}
@@ -79,4 +80,52 @@ func (h *handler) linkRedirectHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, rawURL, http.StatusFound)
+}
+
+func (h *handler) linkAddHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Url   string `json:"url"`
+		Alias string `json:"alias"`
+	}
+
+	err := json.ReadBody(w, r, &input)
+	if err != nil {
+		json.BadRequestResponse(w, r, err)
+		return
+	}
+
+	link := model.Link{
+		Url:   input.Url,
+		Alias: input.Alias,
+	}
+
+	v := validator.New()
+
+	parsedURL, err := url.ParseRequestURI(input.Url)
+	if err != nil {
+		json.BadRequestResponse(w, r, errors.New("missed url key or invalid URL provided"))
+		return
+	}
+
+	validator.ValidateURL(v, parsedURL)
+	validator.ValidateAlias(v, input.Alias)
+
+	if !v.Valid() {
+		json.FailedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	err = h.store.Links.InsertLink(&link)
+	if err != nil {
+		switch {
+		case errors.Is(err, storage.ErrDuplicateAlias):
+			v.AddError("alias", fmt.Sprintf("'%s' is already exists in database", link.Alias))
+			json.FailedValidationResponse(w, r, v.Errors)
+		default:
+			json.ServerError(w, r, err)
+		}
+		return
+	}
+
+	json.Created(w, r, link)
 }

@@ -2,8 +2,10 @@ package json
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/pythoninja/go-redirect/internal/server/response"
+	"io"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -26,6 +28,20 @@ func Ok(w http.ResponseWriter, r *http.Request, body any) {
 
 	resp := response.New(w, r)
 	resp.WithStatus(http.StatusOK)
+	resp.WithBody(bodyJson)
+	resp.WithHeader("Content-Type", contentTypeHeader)
+	resp.Write()
+}
+
+func Created(w http.ResponseWriter, r *http.Request, body any) {
+	bodyJson, err := toJson(body)
+	if err != nil {
+		ServerError(w, r, err)
+		return
+	}
+
+	resp := response.New(w, r)
+	resp.WithStatus(http.StatusCreated)
 	resp.WithBody(bodyJson)
 	resp.WithHeader("Content-Type", contentTypeHeader)
 	resp.Write()
@@ -80,4 +96,57 @@ func toJson(body any) ([]byte, error) {
 
 	js = append(js, '\n')
 	return js, nil
+}
+
+func ReadBody(w http.ResponseWriter, r *http.Request, dst any) error {
+	maxBytes := int64(1_048_576)
+	r.Body = http.MaxBytesReader(w, r.Body, maxBytes)
+
+	dec := json.NewDecoder(r.Body)
+	dec.DisallowUnknownFields()
+
+	err := dec.Decode(dst)
+	if err != nil {
+		var syntaxError *json.SyntaxError
+		var unmarshalTypeError *json.UnmarshalTypeError
+		var invalidUnmarshalError *json.InvalidUnmarshalError
+		var maxBytesError *http.MaxBytesError
+
+		switch {
+		case errors.As(err, &syntaxError):
+			return fmt.Errorf("body contains badly-formed JSON (at character %d)", syntaxError.Offset)
+
+		case errors.Is(err, io.ErrUnexpectedEOF):
+			return errors.New("body contains badly-formed JSON")
+
+		case errors.As(err, &unmarshalTypeError):
+			if unmarshalTypeError.Field != "" {
+				return fmt.Errorf("body contains incorrect JSON type for field %q", unmarshalTypeError.Field)
+			}
+			return fmt.Errorf("body contains incorrect JSON type (at character %d)", unmarshalTypeError.Offset)
+
+		case errors.Is(err, io.EOF):
+			return fmt.Errorf("body must not be empty")
+
+		case strings.HasPrefix(err.Error(), "json: unknown field "):
+			fieldName := strings.TrimPrefix(err.Error(), "json: unknown field ")
+			return fmt.Errorf("body contains unknown key: %s", fieldName)
+
+		case errors.As(err, &maxBytesError):
+			return fmt.Errorf("body must not be larger that %d bytes", maxBytesError.Limit)
+
+		case errors.As(err, &invalidUnmarshalError):
+			panic(err)
+
+		default:
+			return err
+		}
+	}
+
+	err = dec.Decode(&struct{}{})
+	if err != io.EOF {
+		return errors.New("body must only contain a single JSON value")
+	}
+
+	return nil
 }
