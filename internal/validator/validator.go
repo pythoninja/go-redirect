@@ -47,6 +47,16 @@ func (v *Validator) matches(value string, rx *regexp.Regexp) bool {
 	return rx.MatchString(value)
 }
 
+func (v *Validator) startsWith(value string, characters ...string) bool {
+	for _, s := range characters {
+		if strings.HasPrefix(value, s) {
+			return true
+		}
+	}
+
+	return false
+}
+
 func ValidateURL(v *Validator, u *url.URL) {
 	if u == nil {
 		v.AddError("url", "cannot be null")
@@ -58,11 +68,13 @@ func ValidateURL(v *Validator, u *url.URL) {
 }
 
 func ValidateAlias(v *Validator, alias string) {
-	re := regexp.MustCompile("^[A-Za-z_-]+$")
+	re := regexp.MustCompile("^[0-9A-Za-z_-]+$")
 
 	v.check(v.notBlank(alias), "alias", "must not be empty")
 	v.check(v.maxChars(alias, 15), "alias", "must be less then 16 symbols")
 	v.check(v.minChars(alias, 3), "alias", "must be more then 2 symbols")
 	v.check(v.matches(alias, re), "alias", "must contain alphabetical (both uppercase and lowercase) "+
 		"characters (A-Z and a-z), underscore, and dash symbols")
+	v.check(!v.startsWith(alias, "-", "_"), "alias", "must start with alphabetical (both uppercase and lowercase "+
+		"characters (A-Z and a-z)")
 }
