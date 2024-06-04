@@ -68,7 +68,7 @@ func ValidateURL(v *Validator, u *url.URL) {
 }
 
 func ValidateAlias(v *Validator, alias string) {
-	re := regexp.MustCompile("^[A-Za-z_-]+$")
+	re := regexp.MustCompile("^[0-9A-Za-z_-]+$")
 
 	v.check(v.notBlank(alias), "alias", "must not be empty")
 	v.check(v.maxChars(alias, 15), "alias", "must be less then 16 symbols")
