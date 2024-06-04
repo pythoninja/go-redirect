@@ -45,7 +45,7 @@ func (h *handler) showLinkHandler(w http.ResponseWriter, r *http.Request) {
 	json.Ok(w, r, res)
 }
 
-func (h *handler) linkRedirectHandler(w http.ResponseWriter, r *http.Request) {
+func (h *handler) redirectLinkHandler(w http.ResponseWriter, r *http.Request) {
 	alias := readAliasParam(r)
 
 	rawURL, err := h.store.Links.GetUrlByAlias(alias)
@@ -82,7 +82,7 @@ func (h *handler) linkRedirectHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, rawURL, http.StatusFound)
 }
 
-func (h *handler) linkAddHandler(w http.ResponseWriter, r *http.Request) {
+func (h *handler) addLinkHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Url   string `json:"url"`
 		Alias string `json:"alias"`
@@ -130,8 +130,7 @@ func (h *handler) linkAddHandler(w http.ResponseWriter, r *http.Request) {
 	json.Created(w, r, link)
 }
 
-func (h *handler) linkUpdateHandler(w http.ResponseWriter, r *http.Request) {
-	// Read id
+func (h *handler) updateLinkHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := readIdParam(r)
 	if err != nil {
 		message := map[string]string{"link": fmt.Sprintf("must be a positive integer")}
@@ -199,4 +198,27 @@ func (h *handler) linkUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.Ok(w, r, link)
+}
+
+func (h *handler) deleteLinkHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := readIdParam(r)
+	if err != nil {
+		message := map[string]string{"link": fmt.Sprintf("must be a positive integer")}
+		json.LinkNotFoundResponse(w, r, message)
+		return
+	}
+
+	err = h.store.Links.Delete(id)
+	if err != nil {
+		switch {
+		case errors.Is(err, storage.ErrRecordNotFound):
+			message := map[string]string{"link": fmt.Sprintf("id '%d' not found", id)}
+			json.LinkNotFoundResponse(w, r, message)
+		default:
+			json.ServerError(w, r, err)
+		}
+		return
+	}
+
+	json.Ok(w, r, map[string]string{"message": fmt.Sprintf("link '%d' successfully deleted", id)})
 }

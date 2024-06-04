@@ -162,3 +162,26 @@ func (s linksStorage) Update(link *model.Link) error {
 
 	return nil
 }
+
+func (s linksStorage) Delete(id int64) error {
+	query := `delete from links where id = $1`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	result, err := s.db.ExecContext(ctx, query, id)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return ErrRecordNotFound
+	}
+
+	return nil
+}
