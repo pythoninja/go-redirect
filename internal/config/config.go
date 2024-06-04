@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/pythoninja/go-redirect/internal/tokens"
+	"github.com/pythoninja/go-redirect/internal/generator"
 	"log/slog"
 	"os"
 	"strings"
@@ -27,7 +27,7 @@ type Config struct {
 
 func InitConfiguration(cfg *Config) *Application {
 	if strings.TrimSpace(cfg.APISecretKey) == "" {
-		cfg.APISecretKey = tokens.NewAPIKey()
+		cfg.APISecretKey = generator.NewAPIKey()
 	}
 
 	slog.Info("starting application",

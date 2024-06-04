@@ -1,4 +1,4 @@
-package tokens
+package generator
 
 import (
 	"crypto/rand"
