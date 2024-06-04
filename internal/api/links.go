@@ -96,7 +96,7 @@ func (h *handler) addLinkHandler(w http.ResponseWriter, r *http.Request) {
 
 	link := model.Link{
 		Url:   input.Url,
-		Alias: input.Alias,
+		Alias: normalizeAlias(input.Alias),
 	}
 
 	v := validator.New()

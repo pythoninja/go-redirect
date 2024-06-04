@@ -2,6 +2,7 @@ package validator
 
 import (
 	"net/url"
+	"regexp"
 	"strings"
 	"unicode/utf8"
 )
@@ -18,15 +19,15 @@ func (v *Validator) Valid() bool {
 	return len(v.Errors) == 0
 }
 
-func (v *Validator) NotBlank(value string) bool {
+func (v *Validator) notBlank(value string) bool {
 	return strings.TrimSpace(value) != ""
 }
 
-func (v *Validator) MaxChars(value string, n int) bool {
+func (v *Validator) maxChars(value string, n int) bool {
 	return utf8.RuneCountInString(value) <= n
 }
 
-func (v *Validator) MinChars(value string, n int) bool {
+func (v *Validator) minChars(value string, n int) bool {
 	return utf8.RuneCountInString(value) >= n
 }
 
@@ -36,10 +37,14 @@ func (v *Validator) AddError(key, message string) {
 	}
 }
 
-func (v *Validator) Check(ok bool, key, message string) {
+func (v *Validator) check(ok bool, key, message string) {
 	if !ok {
 		v.AddError(key, message)
 	}
+}
+
+func (v *Validator) matches(value string, rx *regexp.Regexp) bool {
+	return rx.MatchString(value)
 }
 
 func ValidateURL(v *Validator, u *url.URL) {
@@ -48,12 +53,16 @@ func ValidateURL(v *Validator, u *url.URL) {
 		return
 	}
 
-	v.Check(u.Scheme == "http" || u.Scheme == "https", "protocol", "must be http or https")
-	v.Check(v.NotBlank(u.Host), "hostname", "must not be empty")
+	v.check(u.Scheme == "http" || u.Scheme == "https", "protocol", "must be http or https")
+	v.check(v.notBlank(u.Host), "hostname", "must not be empty")
 }
 
 func ValidateAlias(v *Validator, alias string) {
-	v.Check(v.NotBlank(alias), "alias", "must not be empty")
-	v.Check(v.MaxChars(alias, 15), "alias", "must be less then 16 symbols")
-	v.Check(v.MinChars(alias, 3), "alias", "must be more then 2 symbols")
+	re := regexp.MustCompile("^[A-Za-z_-]+$")
+
+	v.check(v.notBlank(alias), "alias", "must not be empty")
+	v.check(v.maxChars(alias, 15), "alias", "must be less then 16 symbols")
+	v.check(v.minChars(alias, 3), "alias", "must be more then 2 symbols")
+	v.check(v.matches(alias, re), "alias", "must contain alphabetical (both uppercase and lowercase) "+
+		"characters (A-Z and a-z), underscore, and dash symbols")
 }

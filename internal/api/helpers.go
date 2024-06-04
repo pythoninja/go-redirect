@@ -5,6 +5,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 // readIdParam extracts and parses the "id" parameter from the request URL.
@@ -22,4 +23,8 @@ func readIdParam(r *http.Request) (int64, error) {
 // readAliasParam extracts and returns the value of the "alias" parameter from the request URL.
 func readAliasParam(r *http.Request) string {
 	return chi.URLParam(r, "alias")
+}
+
+func normalizeAlias(alias string) string {
+	return strings.ToLower(alias)
 }
