@@ -166,7 +166,7 @@ func (h *handler) updateLinkHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if input.Alias != nil {
-		link.Alias = *input.Alias
+		link.Alias = normalizeAlias(*input.Alias)
 	}
 
 	v := validator.New()
