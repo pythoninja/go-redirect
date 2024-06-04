@@ -75,6 +75,6 @@ func ValidateAlias(v *Validator, alias string) {
 	v.check(v.minChars(alias, 3), "alias", "must be more then 2 symbols")
 	v.check(v.matches(alias, re), "alias", "must contain alphabetical (both uppercase and lowercase) "+
 		"characters (A-Z and a-z), underscore, and dash symbols")
-	v.check(!v.startsWith(alias, "-", "_"), "alias", "must start with alphabetical (both uppercase and lowercase "+
-		"characters (A-Z and a-z)")
+	v.check(!v.startsWith(alias, "-", "_"), "alias", "must start with alphabetical or "+
+		"numerical characters (A-Z, a-z, 0-9)")
 }
