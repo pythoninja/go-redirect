@@ -24,7 +24,7 @@ func (h *handler) listLinksHandler(w http.ResponseWriter, r *http.Request) {
 func (h *handler) showLinkHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := readIdParam(r)
 	if err != nil {
-		message := map[string]string{"link": fmt.Sprintf("must be a positive integer")}
+		message := map[string]string{"link": "must be a positive integer"}
 		json.LinkNotFoundResponse(w, r, message)
 		return
 	}
@@ -133,7 +133,7 @@ func (h *handler) addLinkHandler(w http.ResponseWriter, r *http.Request) {
 func (h *handler) updateLinkHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := readIdParam(r)
 	if err != nil {
-		message := map[string]string{"link": fmt.Sprintf("must be a positive integer")}
+		message := map[string]string{"link": "must be a positive integer"}
 		json.LinkNotFoundResponse(w, r, message)
 		return
 	}
@@ -203,7 +203,7 @@ func (h *handler) updateLinkHandler(w http.ResponseWriter, r *http.Request) {
 func (h *handler) deleteLinkHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := readIdParam(r)
 	if err != nil {
-		message := map[string]string{"link": fmt.Sprintf("must be a positive integer")}
+		message := map[string]string{"link": "must be a positive integer"}
 		json.LinkNotFoundResponse(w, r, message)
 		return
 	}
