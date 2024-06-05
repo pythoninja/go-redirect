@@ -126,7 +126,7 @@ func (s linksStorage) Insert(link *model.Link) error {
 	err := s.db.QueryRowContext(ctx, query, args...).Scan(&link.Id, &link.CreatedAt, &link.Clicks)
 	if err != nil {
 		switch {
-		case errors.As(err, &errUniqueConstraintViolationAlias):
+		case err.Error() == errUniqueConstraintViolationAlias.Error():
 			return ErrDuplicateAlias
 		default:
 			return err
@@ -153,7 +153,7 @@ func (s linksStorage) Update(link *model.Link) error {
 	_, err := s.db.ExecContext(ctx, query, args...)
 	if err != nil {
 		switch {
-		case errors.As(err, &errUniqueConstraintViolationAlias):
+		case err.Error() == errUniqueConstraintViolationAlias.Error():
 			return ErrDuplicateAlias
 		default:
 			return err
