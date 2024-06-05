@@ -6,6 +6,7 @@ import (
 	"github.com/pythoninja/go-redirect/internal/config"
 	"time"
 
+	// Importing "lib/pq" for side effects only.
 	_ "github.com/lib/pq"
 )
 

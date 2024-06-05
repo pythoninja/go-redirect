@@ -2,7 +2,7 @@ package route
 
 type Routes struct {
 	Root root
-	Api  api
+	API  api
 }
 
 type root struct {
@@ -26,7 +26,7 @@ func Configure() Routes {
 			Path:     "/",
 			Redirect: "/{alias}",
 		},
-		Api: api{
+		API: api{
 			Path:       "/v1",
 			Healtcheck: "/health",
 			ListLinks:  "/links",

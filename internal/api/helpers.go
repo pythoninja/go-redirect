@@ -8,10 +8,10 @@ import (
 	"strings"
 )
 
-// readIdParam extracts and parses the "id" parameter from the request URL.
+// readIDParam extracts and parses the "id" parameter from the request URL.
 // It returns the parsed "id" as int64 if it is a positive integer, otherwise
 // an error with message "invalid id parameter".
-func readIdParam(r *http.Request) (int64, error) {
+func readIDParam(r *http.Request) (int64, error) {
 	id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 	if err != nil || id < 1 {
 		return 0, errors.New("invalid id parameter")

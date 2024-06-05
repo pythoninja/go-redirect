@@ -36,7 +36,6 @@ func InvalidAPIKeyResponse(w http.ResponseWriter, r *http.Request) {
 func AuthenticationRequiredResponse(w http.ResponseWriter, r *http.Request) {
 	message := "you must be authenticated to access this resource"
 	errorResponse(w, r, http.StatusUnauthorized, message, nil)
-
 }
 
 func ServerErrorWithDetails(w http.ResponseWriter, r *http.Request, message map[string]string) {

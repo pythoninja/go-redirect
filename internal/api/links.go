@@ -22,7 +22,7 @@ func (h *handler) listLinksHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) showLinkHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := readIdParam(r)
+	id, err := readIDParam(r)
 	if err != nil {
 		message := map[string]string{"link": "must be a positive integer"}
 		json.LinkNotFoundResponse(w, r, message)
@@ -30,7 +30,7 @@ func (h *handler) showLinkHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get info about link from database
-	res, err := h.store.Links.GetById(id)
+	res, err := h.store.Links.GetByID(id)
 	if err != nil {
 		switch {
 		case errors.Is(err, storage.ErrRecordNotFound):
@@ -48,7 +48,7 @@ func (h *handler) showLinkHandler(w http.ResponseWriter, r *http.Request) {
 func (h *handler) redirectLinkHandler(w http.ResponseWriter, r *http.Request) {
 	alias := readAliasParam(r)
 
-	rawURL, err := h.store.Links.GetUrlByAlias(alias)
+	rawURL, err := h.store.Links.GetURLByAlias(alias)
 	if err != nil {
 		switch {
 		case errors.Is(err, storage.ErrRecordNotFound):
@@ -84,7 +84,7 @@ func (h *handler) redirectLinkHandler(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) addLinkHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
-		Url   string `json:"url"`
+		URL   string `json:"url"`
 		Alias string `json:"alias"`
 	}
 
@@ -95,13 +95,13 @@ func (h *handler) addLinkHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	link := model.Link{
-		Url:   input.Url,
+		URL:   input.URL,
 		Alias: normalizeAlias(input.Alias),
 	}
 
 	v := validator.New()
 
-	parsedURL, err := url.ParseRequestURI(input.Url)
+	parsedURL, err := url.ParseRequestURI(input.URL)
 	if err != nil {
 		json.BadRequestResponse(w, r, errors.New("missed url key or invalid URL provided"))
 		return
@@ -131,14 +131,14 @@ func (h *handler) addLinkHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) updateLinkHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := readIdParam(r)
+	id, err := readIDParam(r)
 	if err != nil {
 		message := map[string]string{"link": "must be a positive integer"}
 		json.LinkNotFoundResponse(w, r, message)
 		return
 	}
 
-	link, err := h.store.Links.GetById(id)
+	link, err := h.store.Links.GetByID(id)
 	if err != nil {
 		switch {
 		case errors.Is(err, storage.ErrRecordNotFound):
@@ -151,7 +151,7 @@ func (h *handler) updateLinkHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var input struct {
-		Url   *string `json:"url"`
+		URL   *string `json:"url"`
 		Alias *string `json:"alias"`
 	}
 
@@ -161,8 +161,8 @@ func (h *handler) updateLinkHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if input.Url != nil {
-		link.Url = *input.Url
+	if input.URL != nil {
+		link.URL = *input.URL
 	}
 
 	if input.Alias != nil {
@@ -171,7 +171,7 @@ func (h *handler) updateLinkHandler(w http.ResponseWriter, r *http.Request) {
 
 	v := validator.New()
 
-	parsedURL, err := url.ParseRequestURI(link.Url)
+	parsedURL, err := url.ParseRequestURI(link.URL)
 	if err != nil {
 		json.BadRequestResponse(w, r, errors.New("missed url key or invalid URL provided"))
 		return
@@ -201,7 +201,7 @@ func (h *handler) updateLinkHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) deleteLinkHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := readIdParam(r)
+	id, err := readIDParam(r)
 	if err != nil {
 		message := map[string]string{"link": "must be a positive integer"}
 		json.LinkNotFoundResponse(w, r, message)

@@ -1,2 +1,5 @@
 [env]
 REDIRECT_DB_DSN = "postgres://postgres:password@172.40.0.10/redirect?sslmode=disable"
+
+[tools]
+golangci-lint = "1.59.0"

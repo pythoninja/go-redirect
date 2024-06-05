@@ -12,7 +12,7 @@ func recoverPanic(next http.Handler) http.Handler {
 		defer func() {
 			if err := recover(); err != nil {
 				w.Header().Set("Connection", "close")
-				json.ServerError(w, r, fmt.Errorf("%s", err))
+				json.ServerError(w, r, fmt.Errorf("%s", err)) //nolint: err113
 			}
 		}()
 

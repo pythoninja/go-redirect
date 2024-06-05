@@ -31,9 +31,9 @@ func (s linksStorage) GetAll() ([]*model.Link, error) {
 		var link model.Link
 
 		err := rows.Scan(
-			&link.Id,
+			&link.ID,
 			&link.Alias,
-			&link.Url,
+			&link.URL,
 			&link.Clicks,
 			&link.CreatedAt,
 		)
@@ -50,7 +50,7 @@ func (s linksStorage) GetAll() ([]*model.Link, error) {
 	return links, nil
 }
 
-func (s linksStorage) GetById(id int64) (*model.Link, error) {
+func (s linksStorage) GetByID(id int64) (*model.Link, error) {
 	if id < 1 {
 		return nil, ErrRecordNotFound
 	}
@@ -63,9 +63,9 @@ func (s linksStorage) GetById(id int64) (*model.Link, error) {
 	var link model.Link
 
 	err := s.db.QueryRowContext(ctx, query, id).Scan(
-		&link.Id,
+		&link.ID,
 		&link.Alias,
-		&link.Url,
+		&link.URL,
 		&link.Clicks,
 		&link.CreatedAt,
 	)
@@ -81,7 +81,7 @@ func (s linksStorage) GetById(id int64) (*model.Link, error) {
 	return &link, nil
 }
 
-func (s linksStorage) GetUrlByAlias(alias string) (string, error) {
+func (s linksStorage) GetURLByAlias(alias string) (string, error) {
 	query := `select target_url from links where alias = $1`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -118,12 +118,12 @@ func (s linksStorage) Insert(link *model.Link) error {
 		values ($1, $2)
 		returning id, created_at, clicks`
 
-	args := []any{link.Url, link.Alias}
+	args := []any{link.URL, link.Alias}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := s.db.QueryRowContext(ctx, query, args...).Scan(&link.Id, &link.CreatedAt, &link.Clicks)
+	err := s.db.QueryRowContext(ctx, query, args...).Scan(&link.ID, &link.CreatedAt, &link.Clicks)
 	if err != nil {
 		switch {
 		case err.Error() == errUniqueConstraintViolationAlias.Error():
@@ -142,9 +142,9 @@ func (s linksStorage) Update(link *model.Link) error {
 		where id = $3`
 
 	args := []any{
-		link.Url,
+		link.URL,
 		link.Alias,
-		link.Id,
+		link.ID,
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
