@@ -137,7 +137,7 @@ func ReadBody(w http.ResponseWriter, r *http.Request, dst any) error {
 			panic(err)
 
 		default:
-			return err
+			return fmt.Errorf("read json body error: %w", err)
 		}
 	}
 

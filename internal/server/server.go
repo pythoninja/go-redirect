@@ -50,7 +50,7 @@ func Serve(app *config.Application, store *storage.Storage) error {
 
 	err := srv.ListenAndServe()
 	if !errors.Is(err, http.ErrServerClosed) {
-		return err
+		return fmt.Errorf("failed to start server: %w", err)
 	}
 
 	err = <-shutdownError

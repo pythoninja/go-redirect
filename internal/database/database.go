@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"github.com/pythoninja/go-redirect/internal/config"
 	"time"
 
@@ -13,7 +14,7 @@ import (
 func NewConnectionPool(app *config.Application) (*sql.DB, error) {
 	duration, err := time.ParseDuration(app.Config.Database.MaxIdleTime)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse database max idle time: %w", err)
 	}
 
 	db, err := sql.Open("postgres", app.Config.Database.Dsn)
@@ -22,7 +23,7 @@ func NewConnectionPool(app *config.Application) (*sql.DB, error) {
 	db.SetConnMaxIdleTime(duration)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to open database connection: %w", err)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
@@ -30,8 +31,8 @@ func NewConnectionPool(app *config.Application) (*sql.DB, error) {
 
 	err = db.PingContext(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}
 
-	return db, err
+	return db, nil
 }

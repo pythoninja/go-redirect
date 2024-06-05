@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 )
 
@@ -19,7 +20,7 @@ func (s HealthStorage) GetDatabaseStatus() (int, error) {
 
 	err := s.db.QueryRowContext(ctx, query).Scan(&result)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("failed to get database status: %w", err)
 	}
 
 	return result, nil

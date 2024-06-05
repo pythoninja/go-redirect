@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"github.com/pythoninja/go-redirect/internal/model"
 	"time"
 )
@@ -20,7 +21,7 @@ func (s linksStorage) GetAll() ([]*model.Link, error) {
 
 	rows, err := s.db.QueryContext(ctx, query)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to fetch links from database: %w", err)
 	}
 
 	defer rows.Close()
@@ -38,13 +39,13 @@ func (s linksStorage) GetAll() ([]*model.Link, error) {
 			&link.CreatedAt,
 		)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to scan database rows for links: %w", err)
 		}
 
 		links = append(links, &link)
 	}
 	if err = rows.Err(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error occurred during row scanning for links: %w", err)
 	}
 
 	return links, nil
@@ -74,7 +75,7 @@ func (s linksStorage) GetByID(id int64) (*model.Link, error) {
 		case errors.Is(err, sql.ErrNoRows):
 			return nil, ErrRecordNotFound
 		default:
-			return nil, err
+			return nil, fmt.Errorf("failed to fetch link by ID: %w", err)
 		}
 	}
 
@@ -95,7 +96,7 @@ func (s linksStorage) GetURLByAlias(alias string) (string, error) {
 		case errors.Is(err, sql.ErrNoRows):
 			return "", ErrRecordNotFound
 		default:
-			return "", err
+			return "", fmt.Errorf("failed to fetch URL by alias: %w", err)
 		}
 	}
 
@@ -110,7 +111,7 @@ func (s linksStorage) UpdateClicksByAlias(alias string) error {
 
 	_, err := s.db.ExecContext(ctx, query, alias)
 
-	return err
+	return fmt.Errorf("failed to increment clicks by alias.: %w", err)
 }
 
 func (s linksStorage) Insert(link *model.Link) error {
@@ -129,7 +130,7 @@ func (s linksStorage) Insert(link *model.Link) error {
 		case err.Error() == errUniqueConstraintViolationAlias.Error():
 			return ErrDuplicateAlias
 		default:
-			return err
+			return fmt.Errorf("failed to create new link: %w", err)
 		}
 	}
 
@@ -156,7 +157,7 @@ func (s linksStorage) Update(link *model.Link) error {
 		case err.Error() == errUniqueConstraintViolationAlias.Error():
 			return ErrDuplicateAlias
 		default:
-			return err
+			return fmt.Errorf("failed to update link: %w", err)
 		}
 	}
 
@@ -171,12 +172,12 @@ func (s linksStorage) Delete(id int64) error {
 
 	result, err := s.db.ExecContext(ctx, query, id)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to delete link: %w", err)
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to count delete link operation affected rows: %w", err)
 	}
 
 	if rowsAffected == 0 {
