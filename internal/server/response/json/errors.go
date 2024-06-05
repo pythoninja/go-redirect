@@ -72,7 +72,6 @@ func logError(r *http.Request, status int, err error) {
 	if err != nil {
 		logEntry.Error("error logged",
 			slog.String("details", err.Error()))
-
 	} else {
 		logEntry.Warn("warning logged")
 	}
