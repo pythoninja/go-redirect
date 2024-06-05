@@ -13,6 +13,7 @@ type HealthStorage struct {
 
 func (s HealthStorage) GetDatabaseStatus() (int, error) {
 	query := `select 1`
+
 	var result int
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)

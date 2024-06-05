@@ -57,6 +57,7 @@ func Created(w http.ResponseWriter, r *http.Request, body any) {
 func errorResponse(w http.ResponseWriter, r *http.Request, status int, message any, headers http.Header) {
 	wrapper := responseWrapper{"errors": message}
 	bodyJSON, err := toJSON(wrapper)
+
 	if err != nil {
 		slog.Error(err.Error())
 	}
@@ -109,10 +110,12 @@ func ReadBody(w http.ResponseWriter, r *http.Request, dst any) error {
 
 	err := dec.Decode(dst)
 	if err != nil {
-		var syntaxError *json.SyntaxError
-		var unmarshalTypeError *json.UnmarshalTypeError
-		var invalidUnmarshalError *json.InvalidUnmarshalError
-		var maxBytesError *http.MaxBytesError
+		var (
+			syntaxError           *json.SyntaxError
+			unmarshalTypeError    *json.UnmarshalTypeError
+			invalidUnmarshalError *json.InvalidUnmarshalError
+			maxBytesError         *http.MaxBytesError
+		)
 
 		switch {
 		case errors.As(err, &syntaxError):

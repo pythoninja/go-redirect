@@ -32,11 +32,11 @@ func Serve(app *config.Application, store *storage.Storage) error {
 
 	go func() {
 		slog.Info("starting background job to listen for signals")
+
 		quit := make(chan os.Signal, 1)
-
 		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-
 		s := <-quit
+
 		slog.Info("shutting down the server", slog.Any("signal", s.String()))
 
 		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)

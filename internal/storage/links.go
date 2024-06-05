@@ -44,6 +44,7 @@ func (s linksStorage) GetAll() ([]*model.Link, error) {
 
 		links = append(links, &link)
 	}
+
 	if err = rows.Err(); err != nil {
 		return nil, fmt.Errorf("error occurred during row scanning for links: %w", err)
 	}

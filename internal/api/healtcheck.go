@@ -24,6 +24,7 @@ func (h *handler) healthcheckHandler(w http.ResponseWriter, r *http.Request) {
 	// Check the result from 'select 1' query.
 	if res != 1 {
 		slog.Error("database down")
+
 		health.DatabaseStatus, health.Status = "down", "fail"
 	}
 

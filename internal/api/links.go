@@ -66,6 +66,7 @@ func (h *handler) redirectLinkHandler(w http.ResponseWriter, r *http.Request) {
 
 	v := validator.New()
 	parsedURL, err := url.ParseRequestURI(rawURL)
+
 	if err != nil {
 		json.ServerError(w, r, err)
 
