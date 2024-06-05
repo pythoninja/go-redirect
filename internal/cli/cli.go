@@ -62,7 +62,8 @@ func Run() {
 
 	err = server.Serve(app, store)
 	if err != nil {
-		slog.Error(err.Error())
-		os.Exit(1)
+		slog.Error("failed to run server", slog.Any("error", err.Error()))
+
+		return
 	}
 }
