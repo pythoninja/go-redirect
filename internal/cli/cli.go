@@ -25,7 +25,6 @@ const (
 	flagSetAPIKeyHelp            = "Set a custom API key or leave empty to generate a random" //nolint:gosec
 )
 
-//goland:noinspection GoUnhandledErrorResult
 func Run() {
 	var cfg config.Config
 
