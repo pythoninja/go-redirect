@@ -22,7 +22,7 @@ const (
 	flagDatabaseMaxIdleConnsHelp = "Postgres max idle connections"
 	flagDatabaseMaxIdleTimeHelp  = "Postgres max time. Values example: 45s, 30m"
 	flagEnableRateLimiterHelp    = "Enable global rate limiter"
-	flagSetAPIKeyHelp            = "Set a custom API key or leave empty to generate a random"
+	flagSetAPIKeyHelp            = "Set a custom API key or leave empty to generate a random" //nolint:gosec
 )
 
 //goland:noinspection GoUnhandledErrorResult
