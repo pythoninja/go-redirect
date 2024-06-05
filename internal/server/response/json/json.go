@@ -61,11 +61,9 @@ func errorResponse(w http.ResponseWriter, r *http.Request, status int, message a
 
 	resp := response.New(w, r)
 
-	if headers != nil {
-		for key, values := range headers {
-			for _, h := range values {
-				resp.WithHeader(key, h)
-			}
+	for key, values := range headers {
+		for _, h := range values {
+			resp.WithHeader(key, h)
 		}
 	}
 
