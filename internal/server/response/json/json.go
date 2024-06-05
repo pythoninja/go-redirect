@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-var contentTypeHeader = "application/json"
+var contentTypeHeader = "application/json" //nolint:gochecknoglobals
 
 type responseWrapper map[string]any
 
@@ -111,10 +111,11 @@ func ReadBody(w http.ResponseWriter, r *http.Request, dst any) error {
 	err := dec.Decode(dst)
 	if err != nil {
 		var (
-			syntaxError           *json.SyntaxError
-			unmarshalTypeError    *json.UnmarshalTypeError
-			invalidUnmarshalError *json.InvalidUnmarshalError
-			maxBytesError         *http.MaxBytesError
+			syntaxError             *json.SyntaxError
+			unmarshalTypeError      *json.UnmarshalTypeError
+			invalidUnmarshalError   *json.InvalidUnmarshalError
+			maxBytesError           *http.MaxBytesError
+			bodyMustNotBeEmptyError = errors.New("body must not be empty")
 		)
 
 		switch {
@@ -132,7 +133,7 @@ func ReadBody(w http.ResponseWriter, r *http.Request, dst any) error {
 			return fmt.Errorf("body contains incorrect JSON type (at character %d)", unmarshalTypeError.Offset)
 
 		case errors.Is(err, io.EOF):
-			return fmt.Errorf("body must not be empty")
+			return bodyMustNotBeEmptyError
 
 		case strings.HasPrefix(err.Error(), "json: unknown field "):
 			fieldName := strings.TrimPrefix(err.Error(), "json: unknown field ")
