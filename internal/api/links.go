@@ -15,6 +15,7 @@ func (h *handler) listLinksHandler(w http.ResponseWriter, r *http.Request) {
 	res, err := h.store.Links.GetAll()
 	if err != nil {
 		json.ServerError(w, r, err)
+
 		return
 	}
 
@@ -26,6 +27,7 @@ func (h *handler) showLinkHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		message := map[string]string{"link": "must be a positive integer"}
 		json.LinkNotFoundResponse(w, r, message)
+
 		return
 	}
 
@@ -39,6 +41,7 @@ func (h *handler) showLinkHandler(w http.ResponseWriter, r *http.Request) {
 		default:
 			json.ServerError(w, r, err)
 		}
+
 		return
 	}
 
@@ -57,6 +60,7 @@ func (h *handler) redirectLinkHandler(w http.ResponseWriter, r *http.Request) {
 		default:
 			json.ServerError(w, r, err)
 		}
+
 		return
 	}
 
@@ -64,6 +68,7 @@ func (h *handler) redirectLinkHandler(w http.ResponseWriter, r *http.Request) {
 	parsedURL, err := url.ParseRequestURI(rawURL)
 	if err != nil {
 		json.ServerError(w, r, err)
+
 		return
 	}
 
@@ -71,6 +76,7 @@ func (h *handler) redirectLinkHandler(w http.ResponseWriter, r *http.Request) {
 	// Send an HTTP 500 error and log the details if returned URL is not valid.
 	if validator.ValidateURL(v, parsedURL); !v.Valid() {
 		json.ServerErrorWithDetails(w, r, v.Errors)
+
 		return
 	}
 
@@ -91,6 +97,7 @@ func (h *handler) addLinkHandler(w http.ResponseWriter, r *http.Request) {
 	err := json.ReadBody(w, r, &input)
 	if err != nil {
 		json.BadRequestResponse(w, r, err)
+
 		return
 	}
 
@@ -104,6 +111,7 @@ func (h *handler) addLinkHandler(w http.ResponseWriter, r *http.Request) {
 	parsedURL, err := url.ParseRequestURI(input.URL)
 	if err != nil {
 		json.BadRequestResponse(w, r, errors.New("missed url key or invalid URL provided"))
+
 		return
 	}
 
@@ -112,6 +120,7 @@ func (h *handler) addLinkHandler(w http.ResponseWriter, r *http.Request) {
 
 	if !v.Valid() {
 		json.FailedValidationResponse(w, r, v.Errors)
+
 		return
 	}
 
@@ -124,6 +133,7 @@ func (h *handler) addLinkHandler(w http.ResponseWriter, r *http.Request) {
 		default:
 			json.ServerError(w, r, err)
 		}
+
 		return
 	}
 
@@ -135,6 +145,7 @@ func (h *handler) updateLinkHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		message := map[string]string{"link": "must be a positive integer"}
 		json.LinkNotFoundResponse(w, r, message)
+
 		return
 	}
 
@@ -147,6 +158,7 @@ func (h *handler) updateLinkHandler(w http.ResponseWriter, r *http.Request) {
 		default:
 			json.ServerError(w, r, err)
 		}
+
 		return
 	}
 
@@ -158,6 +170,7 @@ func (h *handler) updateLinkHandler(w http.ResponseWriter, r *http.Request) {
 	err = json.ReadBody(w, r, &input)
 	if err != nil {
 		json.BadRequestResponse(w, r, err)
+
 		return
 	}
 
@@ -174,6 +187,7 @@ func (h *handler) updateLinkHandler(w http.ResponseWriter, r *http.Request) {
 	parsedURL, err := url.ParseRequestURI(link.URL)
 	if err != nil {
 		json.BadRequestResponse(w, r, errors.New("missed url key or invalid URL provided"))
+
 		return
 	}
 
@@ -182,6 +196,7 @@ func (h *handler) updateLinkHandler(w http.ResponseWriter, r *http.Request) {
 
 	if !v.Valid() {
 		json.FailedValidationResponse(w, r, v.Errors)
+
 		return
 	}
 
@@ -194,6 +209,7 @@ func (h *handler) updateLinkHandler(w http.ResponseWriter, r *http.Request) {
 		default:
 			json.ServerError(w, r, err)
 		}
+
 		return
 	}
 
@@ -205,6 +221,7 @@ func (h *handler) deleteLinkHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		message := map[string]string{"link": "must be a positive integer"}
 		json.LinkNotFoundResponse(w, r, message)
+
 		return
 	}
 
@@ -217,6 +234,7 @@ func (h *handler) deleteLinkHandler(w http.ResponseWriter, r *http.Request) {
 		default:
 			json.ServerError(w, r, err)
 		}
+
 		return
 	}
 

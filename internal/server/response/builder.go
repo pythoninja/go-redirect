@@ -24,16 +24,19 @@ func New(w http.ResponseWriter, r *http.Request) *Builder {
 
 func (b *Builder) WithStatus(statusCode int) *Builder {
 	b.statusCode = statusCode
+
 	return b
 }
 
 func (b *Builder) WithHeader(key, value string) *Builder {
 	b.headers.Add(key, value)
+
 	return b
 }
 
 func (b *Builder) WithBody(body []byte) *Builder {
 	b.body = body
+
 	return b
 }
 

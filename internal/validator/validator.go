@@ -60,6 +60,7 @@ func (v *Validator) startsWith(value string, characters ...string) bool {
 func ValidateURL(v *Validator, u *url.URL) {
 	if u == nil {
 		v.AddError("url", "cannot be null")
+
 		return
 	}
 

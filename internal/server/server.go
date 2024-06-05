@@ -59,5 +59,6 @@ func Serve(app *config.Application, store *storage.Storage) error {
 	}
 
 	slog.Info("server gracefully stopped")
+
 	return nil
 }

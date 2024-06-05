@@ -23,6 +23,7 @@ func Ok(w http.ResponseWriter, r *http.Request, body any) {
 	bodyJSON, err := toJSON(body)
 	if err != nil {
 		ServerError(w, r, err)
+
 		return
 	}
 
@@ -37,6 +38,7 @@ func Created(w http.ResponseWriter, r *http.Request, body any) {
 	bodyJSON, err := toJSON(body)
 	if err != nil {
 		ServerError(w, r, err)
+
 		return
 	}
 
@@ -89,10 +91,12 @@ func toJSON(body any) ([]byte, error) {
 	js, err := json.MarshalIndent(message, "", strings.Repeat(" ", 2))
 	if err != nil {
 		slog.Error("Unable to marshal JSON data", slog.Any("error", err))
+
 		return nil, fmt.Errorf("unable to marshal json: %s", err)
 	}
 
 	js = append(js, '\n')
+
 	return js, nil
 }
 
@@ -121,6 +125,7 @@ func ReadBody(w http.ResponseWriter, r *http.Request, dst any) error {
 			if unmarshalTypeError.Field != "" {
 				return fmt.Errorf("body contains incorrect JSON type for field %q", unmarshalTypeError.Field)
 			}
+
 			return fmt.Errorf("body contains incorrect JSON type (at character %d)", unmarshalTypeError.Offset)
 
 		case errors.Is(err, io.EOF):
@@ -128,6 +133,7 @@ func ReadBody(w http.ResponseWriter, r *http.Request, dst any) error {
 
 		case strings.HasPrefix(err.Error(), "json: unknown field "):
 			fieldName := strings.TrimPrefix(err.Error(), "json: unknown field ")
+
 			return fmt.Errorf("body contains unknown key: %s", fieldName)
 
 		case errors.As(err, &maxBytesError):

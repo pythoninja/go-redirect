@@ -17,6 +17,7 @@ func keyAuth(apiKey string) func(http.Handler) http.Handler {
 			if authorizationHeader == "" {
 				slog.Warn("blank authorization header")
 				json.AuthenticationRequiredResponse(w, r)
+
 				return
 			}
 
@@ -24,6 +25,7 @@ func keyAuth(apiKey string) func(http.Handler) http.Handler {
 			if len(headerParts) != 2 || headerParts[0] != "Key" {
 				slog.Warn("invalid authorization header", slog.Any("header", authorizationHeader))
 				json.InvalidAPIKeyResponse(w, r)
+
 				return
 			}
 
@@ -32,6 +34,7 @@ func keyAuth(apiKey string) func(http.Handler) http.Handler {
 			if key != apiKey {
 				slog.Info("invalid api key provided", slog.Any("key", key))
 				json.InvalidAPIKeyResponse(w, r)
+
 				return
 			}
 
