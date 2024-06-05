@@ -93,7 +93,7 @@ func toJSON(body any) ([]byte, error) {
 	if err != nil {
 		slog.Error("Unable to marshal JSON data", slog.Any("error", err))
 
-		return nil, fmt.Errorf("unable to marshal json: %s", err)
+		return nil, fmt.Errorf("unable to marshal json: %w", err)
 	}
 
 	js = append(js, '\n')
