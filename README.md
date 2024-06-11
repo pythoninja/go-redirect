@@ -3,10 +3,12 @@
 ## Development
 
 Just commands:
-1. `just switch <branch>` - fetches from origin and switches to requested branch.
-2. `just master-pull` - switches to master branch and pulls from origin.
-3. `just branch-push` - pushes to the origin with `--set-upstream origin HEAD` arg.
-
-Connect to postgresql:
-
-`psql $REDIRECT_DB_DSN` - will connect to the PostgreSQL instance running with `compose.yml`.
+1. `just` - prints all commands.
+2. `just switch <branch>` - fetches from origin and switches to requested branch.
+3. `just pull-master` - switches to master branch and pulls from origin.
+4. `just push-branch` - pushes to the origin with `--set-upstream origin HEAD` arg.
+5. `just audit` - runs linters.
+6. `just sql` - runs psql.
+7. `just migrations-up` - run migration scripts.
+8. `just migrations-down` - rollback migrations scripts.
+9. `just run` - runs `air`.
