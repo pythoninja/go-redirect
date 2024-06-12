@@ -13,6 +13,9 @@ pull-master:
 push-branch:
     git push --set-upstream origin HEAD
 
+prepare-dev:
+    @docker compose --profile dev up --detach
+
 run-dev:
     @air
 
