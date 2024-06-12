@@ -17,7 +17,7 @@ run-dev:
     @air
 
 sql:
-    psql $REDIRECT_DB_DSN
+    @psql $REDIRECT_DB_DSN
 
 build-snapshot:
     @goreleaser build --snapshot --clean
@@ -30,7 +30,7 @@ migrations-up:
 migrations-down:
     @migrate -path ./migrations -database=$REDIRECT_DB_DSN down --all
 
-audit:
+lint:
 	@echo 'Tidying and verifying module dependencies...'
 	@go mod tidy
 	@go mod verify
