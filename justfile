@@ -13,11 +13,14 @@ pull-master:
 push-branch:
     git push --set-upstream origin HEAD
 
-run:
+run-dev:
     @air
 
 sql:
     psql $REDIRECT_DB_DSN
+
+build-snapshot:
+    @goreleaser build --snapshot --clean
 
 [confirm('Run all migrations?')]
 migrations-up:

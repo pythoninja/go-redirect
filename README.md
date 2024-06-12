@@ -11,4 +11,5 @@ Just commands:
 6. `just sql` - runs psql.
 7. `just migrations-up` - run migration scripts.
 8. `just migrations-down` - rollback migrations scripts.
-9. `just run` - runs `air`.
+9. `just run-dev` - runs `air`.
+10. `just build-snapshot` - builds snapshot version.

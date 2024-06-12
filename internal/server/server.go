@@ -7,6 +7,7 @@ import (
 	"github.com/pythoninja/go-redirect/internal/api"
 	"github.com/pythoninja/go-redirect/internal/config"
 	"github.com/pythoninja/go-redirect/internal/storage"
+	"github.com/pythoninja/go-redirect/internal/version"
 	"log/slog"
 	"net/http"
 	"os"
@@ -18,6 +19,24 @@ import (
 func Serve(app *config.Application, store *storage.Storage) error {
 	logHandler := slog.NewJSONHandler(os.Stdout, nil)
 	serverLogger := slog.NewLogLogger(logHandler, slog.LevelDebug)
+
+	buildInfo := version.GetBuildInfo()
+
+	slog.Info("initialized application",
+		slog.Group("info",
+			slog.String("version", buildInfo.Version),
+			slog.String("build_time", buildInfo.VcsTime),
+			slog.String("environment", app.Config.Env),
+		),
+		slog.Group("settings",
+			slog.String("addr", app.Config.Addr),
+			slog.Int("port", app.Config.Port),
+			slog.String("db-dsn", app.Config.Database.Dsn),
+			slog.Int("db-max-open-conns", app.Config.Database.MaxOpenConns),
+			slog.Int("db-max-idle-conns", app.Config.Database.MaxIdleConns),
+			slog.String("db-max-idle-time", app.Config.Database.MaxIdleTime),
+			slog.Bool("rate-limiter-enabled", app.Config.EnableRateLimiter),
+		))
 
 	srv := &http.Server{
 		Addr:         fmt.Sprintf("%s:%d", app.Config.Addr, app.Config.Port),
@@ -45,7 +64,7 @@ func Serve(app *config.Application, store *storage.Storage) error {
 		shutdownError <- srv.Shutdown(ctx)
 	}()
 
-	slog.Info("starting server", slog.Any("addr", srv.Addr))
+	slog.Info("starting web server", slog.Any("addr", srv.Addr))
 	slog.Info("api secret key", slog.Any("key", app.Config.APISecretKey))
 
 	err := srv.ListenAndServe()

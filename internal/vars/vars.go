@@ -1,7 +1,0 @@
-package vars
-
-const (
-	Name        = "Go-Redirect"
-	Version     = "0.1.0"
-	Environment = "dev"
-)

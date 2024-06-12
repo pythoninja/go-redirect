@@ -111,8 +111,11 @@ func (s linksStorage) UpdateClicksByAlias(alias string) error {
 	defer cancel()
 
 	_, err := s.db.ExecContext(ctx, query, alias)
+	if err != nil {
+		return fmt.Errorf("failed to increment clicks by alias.: %w", err)
+	}
 
-	return fmt.Errorf("failed to increment clicks by alias.: %w", err)
+	return nil
 }
 
 func (s linksStorage) Insert(link *model.Link) error {

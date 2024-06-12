@@ -3,15 +3,15 @@ package api
 import (
 	"github.com/pythoninja/go-redirect/internal/model"
 	"github.com/pythoninja/go-redirect/internal/server/response/json"
-	"github.com/pythoninja/go-redirect/internal/vars"
+	"github.com/pythoninja/go-redirect/internal/version"
 	"log/slog"
 	"net/http"
 )
 
 func (h *handler) healthcheckHandler(w http.ResponseWriter, r *http.Request) {
 	health := model.Health{
-		Version:     vars.Version,
-		Environment: vars.Environment,
+		Build:       version.GetBuildInfo(),
+		Environment: h.app.Config.Env,
 	}
 
 	res, err := h.store.Health.GetDatabaseStatus()
