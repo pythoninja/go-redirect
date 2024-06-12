@@ -1,0 +1,24 @@
+linters:
+  disable-all: true
+  enable:
+    - revive
+    - wrapcheck
+    - whitespace
+    - nlreturn
+    - godot
+    - wsl
+    - gocritic
+    - perfsprint
+    - gochecknoglobals
+    - errorlint
+    - gosec
+    - funlen
+    - rowserrcheck
+    - sloglint
+    - staticcheck
+
+linters-settings:
+  funlen:
+    lines: 75
+    statements: 50
+    ignore-comments: true

@@ -1,0 +1,36 @@
+severity = "warning"
+confidence = 0.8
+errorCode = 0
+warningCode = 0
+
+enableAllRules = true
+
+[rule.line-length-limit]
+    arguments = [120]
+
+[rule.unhandled-error]
+    arguments =["fmt.Printf"]
+
+[rule.add-constant]
+    Disabled = true
+
+[rule.package-comments]
+    Disabled = true
+
+[rule.exported]
+    Disabled = true
+
+[rule.deep-exit]
+    Disabled = true
+
+[rule.cyclomatic]
+    Disabled = true
+
+[rule.cognitive-complexity]
+    Disabled = true
+
+[rule.nested-structs]
+    Disabled = true
+
+[rule.flag-parameter]
+    Disabled = true
