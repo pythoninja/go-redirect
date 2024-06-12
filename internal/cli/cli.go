@@ -7,16 +7,16 @@ import (
 	"github.com/pythoninja/go-redirect/internal/database"
 	"github.com/pythoninja/go-redirect/internal/server"
 	"github.com/pythoninja/go-redirect/internal/storage"
-	"github.com/pythoninja/go-redirect/internal/vars"
+	"github.com/pythoninja/go-redirect/internal/version"
 	"log/slog"
 	"os"
 )
 
 const (
 	flagDisplayVersionHelp       = "Display app version and exit"
+	flagEnvironmentHelp          = "Environment (development|production)"
 	flagServerAddrHelp           = "App address to listen"
 	flagServerPortHelp           = "App server port to listen"
-	flagEnvironmentHelp          = "Environment (development|production"
 	flagDatabaseDsnHelp          = "Database DSN"
 	flagDatabaseMaxOpenConnsHelp = "Postgres max open connections"
 	flagDatabaseMaxIdleConnsHelp = "Postgres max idle connections"
@@ -29,7 +29,7 @@ func Run() {
 	var cfg config.Config
 
 	flagVersion := flag.Bool("v", false, flagDisplayVersionHelp)
-	flag.StringVar(&cfg.Env, "env", "development", flagEnvironmentHelp)
+	flag.StringVar(&cfg.Env, "env", os.Getenv("REDIRECT_ENVIRONMENT"), flagEnvironmentHelp)
 	flag.StringVar(&cfg.Addr, "addr", "0.0.0.0", flagServerAddrHelp)
 	flag.IntVar(&cfg.Port, "port", 4000, flagServerPortHelp)
 	flag.StringVar(&cfg.Database.Dsn, "db-dsn", os.Getenv("REDIRECT_DB_DSN"), flagDatabaseDsnHelp)
@@ -40,14 +40,27 @@ func Run() {
 	flag.StringVar(&cfg.APISecretKey, "api-key", "", flagSetAPIKeyHelp)
 	flag.Parse()
 
+	app := config.InitConfiguration(&cfg)
+
 	if *flagVersion {
-		fmt.Printf("%s v%s on %s\n", vars.Name, vars.Version, vars.Environment)
+		buildInfo := version.GetBuildInfo()
+		fmt.Printf(`%s
+Version:     %s
+Environment: %s
+Commit:      %s
+Build time:  %s
+`,
+			buildInfo.AppName,
+			buildInfo.Version,
+			app.Config.Env,
+			buildInfo.VcsCommit,
+			buildInfo.VcsTime,
+		)
+
 		os.Exit(0)
 	}
 
 	config.InitLogger() // todo: move logger into own package
-
-	app := config.InitConfiguration(&cfg)
 
 	db, err := database.NewConnectionPool(app)
 	if err != nil {

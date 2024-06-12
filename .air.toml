@@ -3,9 +3,9 @@ testdata_dir = "testdata"
 tmp_dir = "tmp"
 
 [build]
-  args_bin = ["-api-key 123"]
+  args_bin = ["-api-key 123", "-rate-limiter-enabled=false"]
   bin = "./tmp/main"
-  cmd = "go build -o ./tmp/main ./cmd/api"
+  cmd = "go build -ldflags=\"-X 'github.com/pythoninja/go-redirect/internal/version.version=dev-air'\" -o ./tmp/main ./cmd/api"
   delay = 1000
   exclude_dir = ["assets", "tmp", "vendor", "testdata"]
   exclude_file = []

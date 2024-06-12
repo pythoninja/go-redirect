@@ -12,12 +12,12 @@ import (
 )
 
 type handler struct {
-	config *config.Application
-	store  *storage.Storage
+	app   *config.Application
+	store *storage.Storage
 }
 
-func Router(cfg *config.Application, store *storage.Storage) http.Handler {
-	h := &handler{config: cfg, store: store}
+func Router(app *config.Application, store *storage.Storage) http.Handler {
+	h := &handler{app: app, store: store}
 	r := route.Configure()
 	mw := middleware.Configure()
 
@@ -25,7 +25,7 @@ func Router(cfg *config.Application, store *storage.Storage) http.Handler {
 	rootRouter.Use(mw.LogRequests)
 	rootRouter.Use(mw.RecoverPanic)
 
-	if cfg.Config.EnableRateLimiter {
+	if app.Config.EnableRateLimiter {
 		rootRouter.Use(mw.GlobalRateLimiter)
 	}
 
@@ -39,28 +39,28 @@ func Router(cfg *config.Application, store *storage.Storage) http.Handler {
 
 	// Main rootRouter for /
 	rootRouter.Get(r.Root.Redirect, h.redirectLinkHandler)
-	logRootEntry.Info("registered new route", slog.Any("path", r.Root.Redirect), slog.Any("method", "GET"))
+	logRootEntry.Info("registered route", slog.Any("path", r.Root.Redirect), slog.Any("method", "GET"))
 
 	// API rootRouter for /v1
 	apiRouter := chi.NewRouter()
 
 	apiRouter.Get(r.API.Healtcheck, h.healthcheckHandler)
-	logAPIEntry.Info("registered new route", slog.Any("path", r.API.Healtcheck), slog.Any("method", "GET"))
+	logAPIEntry.Info("registered route", slog.Any("path", r.API.Healtcheck), slog.Any("method", "GET"))
 
-	apiRouter.With(mw.Authorize(cfg.Config.APISecretKey)).Get(r.API.ListLinks, h.listLinksHandler)
-	logAPIEntry.Info("registered new route", slog.Any("path", r.API.ListLinks), slog.Any("method", "GET"))
+	apiRouter.With(mw.Authorize(app.Config.APISecretKey)).Get(r.API.ListLinks, h.listLinksHandler)
+	logAPIEntry.Info("registered route", slog.Any("path", r.API.ListLinks), slog.Any("method", "GET"))
 
-	apiRouter.With(mw.Authorize(cfg.Config.APISecretKey)).Get(r.API.ShowLink, h.showLinkHandler)
-	logAPIEntry.Info("registered new route", slog.Any("path", r.API.ShowLink), slog.Any("method", "GET"))
+	apiRouter.With(mw.Authorize(app.Config.APISecretKey)).Get(r.API.ShowLink, h.showLinkHandler)
+	logAPIEntry.Info("registered route", slog.Any("path", r.API.ShowLink), slog.Any("method", "GET"))
 
-	apiRouter.With(mw.Authorize(cfg.Config.APISecretKey)).Post(r.API.AddLink, h.addLinkHandler)
-	logAPIEntry.Info("registered new route", slog.Any("path", r.API.AddLink), slog.Any("method", "POST"))
+	apiRouter.With(mw.Authorize(app.Config.APISecretKey)).Post(r.API.AddLink, h.addLinkHandler)
+	logAPIEntry.Info("registered route", slog.Any("path", r.API.AddLink), slog.Any("method", "POST"))
 
-	apiRouter.With(mw.Authorize(cfg.Config.APISecretKey)).Put(r.API.UpdateLink, h.updateLinkHandler)
-	logAPIEntry.Info("registered new route", slog.Any("path", r.API.UpdateLink), slog.Any("method", "PUT"))
+	apiRouter.With(mw.Authorize(app.Config.APISecretKey)).Put(r.API.UpdateLink, h.updateLinkHandler)
+	logAPIEntry.Info("registered route", slog.Any("path", r.API.UpdateLink), slog.Any("method", "PUT"))
 
-	apiRouter.With(mw.Authorize(cfg.Config.APISecretKey)).Delete(r.API.DeleteLink, h.deleteLinkHandler)
-	logAPIEntry.Info("registered new route", slog.Any("path", r.API.DeleteLink), slog.Any("method", "DELETE"))
+	apiRouter.With(mw.Authorize(app.Config.APISecretKey)).Delete(r.API.DeleteLink, h.deleteLinkHandler)
+	logAPIEntry.Info("registered route", slog.Any("path", r.API.DeleteLink), slog.Any("method", "DELETE"))
 
 	// Mount API rootRouter to the main rootRouter
 	rootRouter.Mount(r.API.Path, apiRouter)
