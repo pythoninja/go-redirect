@@ -1,12 +1,17 @@
 #file: noinspection SpellCheckingInspection
 services:
   db:
-    image: postgres:16-alpine@sha256:951bfda460300925caa3949eaa092ba022e9aec191bbea9056a39e2382260b27
+    image: postgres:16.3-alpine
+    container_name: postgres16
     restart: on-failure
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DB: redirect
+    profiles:
+      - dev
+      - simple-prod
+      - migration
     volumes:
       - redirectdata:/var/lib/postgresql/data
     networks:
@@ -21,7 +26,45 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 512M
+          memory: 256M
+
+  goredirect:
+    image: ghcr.io/pythoninja/go-redirect:latest
+    container_name: go-redirect
+    restart: unless-stopped
+    environment:
+      REDIRECT_ENVIRONMENT: production
+      REDIRECT_DB_DSN: postgres://postgres:password@172.40.0.10/redirect?sslmode=disable
+    profiles:
+      - simple-prod
+    networks:
+      redirect:
+        ipv4_address: 172.40.0.20
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+    depends_on:
+      db:
+        condition: service_healthy
+
+  migration:
+    image: migrate/migrate:v4.17.1
+    container_name: migrate
+    environment:
+      REDIRECT_DB_DSN: postgres://postgres:password@172.40.0.10/redirect?sslmode=disable
+    profiles:
+      - migration
+    command: ["-path", "/migrations", "-database", "$REDIRECT_DB_DSN", "up"]
+    volumes:
+      - "${PWD}/migrations:/migrations"
+    networks:
+      redirect:
+        ipv4_address: 172.40.0.50
+    depends_on:
+      db:
+        condition: service_healthy
 
 networks:
   redirect:
