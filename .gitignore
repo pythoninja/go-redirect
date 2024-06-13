@@ -10,3 +10,9 @@ dist/
 
 # Temp files
 tmp/
+
+# Mise configuration
+.mise.toml
+
+# .env
+.env
