@@ -22,7 +22,7 @@ This project uses docker `compose.yml` profiles to set up required dependencies.
 
 There are 3 profiles defined: `dev`, `simple-prod` and `migration`.
 
-Use profile `dev` will set up just a Postgres database. The application will use default DSN to connect to it.
+Use profile `dev` to set up just a Postgres database. The application will use default DSN to connect to it.
 
 A short note on profile `simple-prod` - it will set up a containerized application with Postgres database. 
 
