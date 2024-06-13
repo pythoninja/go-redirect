@@ -1,0 +1,55 @@
+#file: noinspection SpellCheckingInspection
+version: 2
+
+project_name: go-redirect
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: app
+    main: ./cmd/api
+    binary: go-redirect
+    env:
+      - CGO_ENABLED=0
+    ldflags: "-s -w -X 'github.com/pythoninja/go-redirect/internal/version.version={{.Version}}'"
+    goos:
+      - linux
+    goarch:
+      - amd64
+    flags:
+      - -trimpath
+
+archives:
+  - format: tar.gz
+    name_template: "{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
+    wrap_in_directory: false
+
+release:
+  github:
+    owner: pythoninja
+    name: go-redirect
+  draft: true
+  replace_existing_draft: true
+  replace_existing_artifacts: true
+  make_latest: true
+
+snapshot:
+  name_template: "{{ .ShortCommit }}"
+
+dockers:
+  - image_templates:
+      - "ghcr.io/pythoninja/{{ .ProjectName }}:latest"
+      - "ghcr.io/pythoninja/{{ .ProjectName }}:{{ .Tag }}"
+    dockerfile: "Dockerfile.gorelease"
+    ids:
+      - app
+    goos: linux
+    goarch: amd64
+    skip_push: false
+    build_flag_templates:
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source=https://github.com/pythoninja/go-redirect"

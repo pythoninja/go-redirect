@@ -1,0 +1,7 @@
+FROM gcr.io/distroless/static-debian12
+
+COPY go-redirect /bin/go-redirect
+
+USER nonroot:nonroot
+
+ENTRYPOINT ["/bin/go-redirect"]
