@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### Features
+
+- **(config)** Get options from env - ([fd704fe](https://github.com/pythoninja/go-redirect/commit/fd704fee4baf186db962377768ee30278ffd2a8a))
+
 ### Refactoring
 
 - **(router)** Replace `chi.UrlParam` with `PathValue` - ([2c30ed0](https://github.com/pythoninja/go-redirect/commit/2c30ed0cd552865d0f2564cbe321fc7300a6684b))
