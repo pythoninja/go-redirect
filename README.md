@@ -30,3 +30,19 @@ Running the project:
 1. Run database migration scripts: `docker compose --profile migration run migration`
 2. Run project in dev mode: `docker compose --profile dev up --detach`
 3. Run project in simple-prod mode: `docker compose --profile simple-prod up --detach`
+
+### Environment variables
+
+```
+REDIRECT_ENVIRONMENT = "development"
+REDIRECT_API_SECRET_KEY = ""
+REDIRECT_ENABLE_RATELIMITER = "false"
+
+REDIRECT_DB_DSN = "postgres://postgres:password@172.40.0.10/redirect?sslmode=disable"
+REDIRECT_DB_MAX_OPEN_CONNECTIONS = 25
+REDIRECT_DB_MAX_IDLE_CONNECTIONS = 25
+REDIRECT_DB_MAX_IDLE_TIME = "15m"
+
+REDIRECT_LISTEN_ADDRESS = "0.0.0.0"
+REDIRECT_LISTEN_PORT = 4000
+```
