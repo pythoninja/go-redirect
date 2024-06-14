@@ -14,30 +14,39 @@ import (
 
 const (
 	flagDisplayVersionHelp       = "Display app version and exit"
-	flagEnvironmentHelp          = "Environment (development|production)"
-	flagServerAddrHelp           = "App address to listen"
-	flagServerPortHelp           = "App server port to listen"
-	flagDatabaseDsnHelp          = "Database DSN"
-	flagDatabaseMaxOpenConnsHelp = "Postgres max open connections"
-	flagDatabaseMaxIdleConnsHelp = "Postgres max idle connections"
-	flagDatabaseMaxIdleTimeHelp  = "Postgres max time. Values example: 45s, 30m"
-	flagEnableRateLimiterHelp    = "Enable global rate limiter"
-	flagSetAPIKeyHelp            = "Set a custom API key or leave empty to generate a random" //nolint:gosec
+	flagEnvironmentHelp          = "Environment (development|production) (env: REDIRECT_ENVIRONMENT)"
+	flagServerAddrHelp           = "App address to listen (env: REDIRECT_LISTEN_ADDRESS)"
+	flagServerPortHelp           = "App server port to listen (env: REDIRECT_LISTEN_PORT)"
+	flagDatabaseDsnHelp          = "Database DSN (env: REDIRECT_DB_DSN)"
+	flagDatabaseMaxOpenConnsHelp = "Postgres max open connections (env: REDIRECT_DB_MAX_OPEN_CONNECTIONS)"
+	flagDatabaseMaxIdleConnsHelp = "Postgres max idle connections (env: REDIRECT_DB_MAX_IDLE_CONNECTIONS)"
+	flagDatabaseMaxIdleTimeHelp  = "Postgres max time. Values example: 45s, 30m (env: REDIRECT_DB_MAX_IDLE_TIME)"
+	flagEnableRateLimiterHelp    = "Enable global rate limiter (env: REDIRECT_ENABLE_RATELIMITER)"
+	flagSetAPIKeyHelp            = "Secret API key. Leave blank to generate new (env: REDIRECT_API_KEY)" //nolint:gosec
 )
 
 func Run() {
 	var cfg config.Config
 
 	flagVersion := flag.Bool("v", false, flagDisplayVersionHelp)
-	flag.StringVar(&cfg.Env, "env", os.Getenv("REDIRECT_ENVIRONMENT"), flagEnvironmentHelp)
-	flag.StringVar(&cfg.Addr, "addr", "0.0.0.0", flagServerAddrHelp)
-	flag.IntVar(&cfg.Port, "port", 4000, flagServerPortHelp)
-	flag.StringVar(&cfg.Database.Dsn, "db-dsn", os.Getenv("REDIRECT_DB_DSN"), flagDatabaseDsnHelp)
-	flag.IntVar(&cfg.Database.MaxOpenConns, "db-max-open-conns", 25, flagDatabaseMaxOpenConnsHelp)
-	flag.IntVar(&cfg.Database.MaxIdleConns, "db-max-idle-conns", 25, flagDatabaseMaxIdleConnsHelp)
-	flag.StringVar(&cfg.Database.MaxIdleTime, "db-max-idle-time", "15m", flagDatabaseMaxIdleTimeHelp)
-	flag.BoolVar(&cfg.EnableRateLimiter, "rate-limiter-enabled", true, flagEnableRateLimiterHelp)
-	flag.StringVar(&cfg.APISecretKey, "api-key", "", flagSetAPIKeyHelp)
+	flag.StringVar(&cfg.Env, "env",
+		config.GetEnv("REDIRECT_ENVIRONMENT", "development"), flagEnvironmentHelp)
+	flag.StringVar(&cfg.Addr, "addr",
+		config.GetEnv("REDIRECT_LISTEN_ADDRESS", "0.0.0.0"), flagServerAddrHelp)
+	flag.IntVar(&cfg.Port, "port",
+		config.GetEnv("REDIRECT_LISTEN_PORT", 4000), flagServerPortHelp)
+	flag.StringVar(&cfg.Database.Dsn, "db-dsn",
+		config.GetEnv("REDIRECT_DB_DSN", ""), flagDatabaseDsnHelp)
+	flag.IntVar(&cfg.Database.MaxOpenConns, "db-max-open-conns",
+		config.GetEnv("REDIRECT_DB_MAX_OPEN_CONNECTIONS", 25), flagDatabaseMaxOpenConnsHelp)
+	flag.IntVar(&cfg.Database.MaxIdleConns, "db-max-idle-conns",
+		config.GetEnv("REDIRECT_DB_MAX_IDLE_CONNECTIONS", 25), flagDatabaseMaxIdleConnsHelp)
+	flag.StringVar(&cfg.Database.MaxIdleTime, "db-max-idle-time",
+		config.GetEnv("REDIRECT_DB_MAX_IDLE_TIME", "15m"), flagDatabaseMaxIdleTimeHelp)
+	flag.BoolVar(&cfg.EnableRateLimiter, "rate-limiter-enabled",
+		config.GetEnv("REDIRECT_ENABLE_RATELIMITER", true), flagEnableRateLimiterHelp)
+	flag.StringVar(&cfg.APISecretKey, "api-key",
+		config.GetEnv("REDIRECT_API_KEY", ""), flagSetAPIKeyHelp)
 	flag.Parse()
 
 	app := config.InitConfiguration(&cfg)
@@ -60,7 +69,7 @@ Build time:  %s
 		os.Exit(0)
 	}
 
-	config.InitLogger() // todo: move logger into own package
+	config.SetupLogger(app.Config.Env) // todo: move logger into own package
 
 	db, err := database.NewConnectionPool(app)
 	if err != nil {
