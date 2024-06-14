@@ -40,6 +40,9 @@ services:
     networks:
       redirect:
         ipv4_address: 172.40.0.20
+    ports:
+      - "4000:4000"
+    entrypoint: ["/bin/go-redirect"]
     deploy:
       resources:
         limits:
