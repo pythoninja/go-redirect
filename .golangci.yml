@@ -16,6 +16,7 @@ linters:
     - rowserrcheck
     - sloglint
     - staticcheck
+    - testifylint
 
 linters-settings:
   funlen:
