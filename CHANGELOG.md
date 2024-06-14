@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [unreleased]
+
+### Refactoring
+
+- **(router)** Replace `chi.UrlParam` with `PathValue` - ([2c30ed0](https://github.com/pythoninja/go-redirect/commit/2c30ed0cd552865d0f2564cbe321fc7300a6684b))
+
 ## [0.1.0] - 2024-06-13
 
 ### Features
