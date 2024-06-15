@@ -1,0 +1,53 @@
+name: changelog
+on:
+  pull_request:
+    types:
+      - labeled
+
+permissions:
+  contents: write
+  pull-requests: write
+
+
+jobs:
+ cliff:
+   name: git-cliff
+   if: ${{ github.event.label.name == 'require-changelog' }}
+   runs-on: ubuntu-latest
+   steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Install git-cliff
+        uses: taiki-e/install-action@v2
+        with:
+          tool: git-cliff
+
+      - name: Generate changelog
+        run: git-cliff --verbose --output CHANGELOG.md
+
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'docs(changelog): update release notes'
+
+      - name: Change labels on success
+        if: success()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          
+          gh pr edit $PR_NUMBER --repo $GITHUB_REPOSITORY --remove-label "require-changelog"
+          gh pr edit $PR_NUMBER --repo $GITHUB_REPOSITORY --add-label "changelog-success"
+          
+      - name: Change labels on failure
+        if: failure()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          
+          gh pr edit $PR_NUMBER --repo $GITHUB_REPOSITORY --remove-label "require-changelog"
+          gh pr edit $PR_NUMBER --repo $GITHUB_REPOSITORY --add-label "changelog-fail"
