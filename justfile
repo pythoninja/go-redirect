@@ -25,6 +25,11 @@ sql:
 build-snapshot:
     @goreleaser build --snapshot --clean
 
+changelog:
+    git cliff --output CHANGELOG.md
+    git add CHANGELOG.md
+    git commit -m 'docs(changelog): update release notes'
+
 [confirm('Run all migrations?')]
 migrations-up:
     @migrate -path ./migrations -database=$REDIRECT_DB_DSN up

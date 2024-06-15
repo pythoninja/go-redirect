@@ -15,6 +15,8 @@
 9. `just prepare-dev` - runs Postgres container with Docker Compose.
 10. `just run-dev` - runs `air`.
 11. `just build-snapshot` - builds snapshot version.
+12. `just changelog` - updates changelog using `cliff` and commits the changes.
+
 
 ### Docker compose
 
