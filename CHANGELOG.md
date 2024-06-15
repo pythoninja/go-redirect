@@ -12,6 +12,10 @@ All notable changes to this project will be documented in this file.
 
 - **(router)** Replace `chi.UrlParam` with `PathValue` - ([2c30ed0](https://github.com/pythoninja/go-redirect/commit/2c30ed0cd552865d0f2564cbe321fc7300a6684b))
 
+### Testing
+
+- Add tests for `GetEnv` and `InitConfiguration` - ([fb9c04e](https://github.com/pythoninja/go-redirect/commit/fb9c04e92f16b4ec6f2d7a824f2fae711c0bdfb3))
+
 ## [0.1.0] - 2024-06-13
 
 ### Features
