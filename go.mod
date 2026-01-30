@@ -5,7 +5,7 @@ go 1.22.4
 require (
 	github.com/go-chi/chi/v5 v5.2.3
 	github.com/go-chi/httprate v0.14.1
-	github.com/lib/pq v1.10.9
+	github.com/lib/pq v1.11.1
 	github.com/stretchr/testify v1.11.1
 )
 
